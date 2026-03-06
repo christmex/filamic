@@ -12,8 +12,8 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->ulid('id')->primary();
-            $table->foreignUlid('school_year_id')->constrained();
             $table->foreignUlid('supplier_id')->constrained();
+            $table->foreignUlid('school_year_id')->constrained();
             $table->date('ordered_at');
             $table->unsignedTinyInteger('discount_percentage')->default(0);
             $table->unsignedSmallInteger('total_items')->default(0);

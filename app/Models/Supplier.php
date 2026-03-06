@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
  * @property string|null $phone
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Order> $orders
+ * @property-read int|null $orders_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, ProductItem> $productItems
  * @property-read int|null $product_items_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Product> $products
@@ -52,5 +54,10 @@ class Supplier extends Model
     public function productItems(): HasManyThrough
     {
         return $this->hasManyThrough(ProductItem::class, Product::class, 'supplier_id', 'product_id', 'id', 'id');
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
     }
 }
