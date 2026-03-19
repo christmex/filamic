@@ -123,7 +123,7 @@ class StudentsTable
                         return $indicator;
                     }),
 
-            ], FiltersLayout::Modal)
+            ], FiltersLayout::AboveContent)
             ->recordActions([
                 DeleteAction::make()->visible(fn (Student $record) => $record->canBeDelete()),
                 // EditAction::make(),
@@ -258,7 +258,7 @@ class StudentsTable
                             Select::make('school_year_id')
                                 ->label('Tahun Ajaran')
                                 ->live()
-                                ->options(fn () => SchoolYear::pluck('name', 'id'))
+                                ->options(fn () => SchoolYear::get()->pluck('name', 'id'))
                                 ->default(fn () => SchoolYear::getActive()?->getKey()),
                             CheckboxList::make('invoice_ids')
                                 ->label('Tagihan')

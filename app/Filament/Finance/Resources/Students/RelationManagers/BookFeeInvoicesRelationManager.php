@@ -46,13 +46,13 @@ class BookFeeInvoicesRelationManager extends RelationManager
                 TextColumn::make('payment_method'),
             ])
             ->filters([
-                SelectFilter::make('school_year_id')
-                    ->label('Tahun Ajaran')
-                    ->options(fn () => SchoolYear::pluck('name', 'id'))
-                    ->default(SchoolYear::getActive()?->getKey()),
-                SelectFilter::make('status')
-                    ->options(InvoiceStatusEnum::class)
-                    ->default(InvoiceStatusEnum::UNPAID->value),
+                // SelectFilter::make('school_year_id')
+                    // ->label('Tahun Ajaran')
+                    // ->options(fn () => SchoolYear::get()->pluck('name', 'id')),
+                    // ->default(SchoolYear::getActive()?->getKey()),
+                // SelectFilter::make('status')
+                //     ->options(InvoiceStatusEnum::class)
+                    // ->default(InvoiceStatusEnum::UNPAID->value),
             ]);
     }
 }

@@ -218,158 +218,18 @@ class MigrateLegacyData extends Command
 
         }
 
-        foreach ($legacyStudents as $oldStudent) {
-
-            $student = Student::where('legacy_old_id', $oldStudent->id)->first();
-
-            $legacyInvoices = DB::connection('legacy')
-                ->table('student_spp_bill')
-                ->where('student_id', $oldStudent->id)
-                ->get();
-
-            foreach ($legacyInvoices as $oldInv) {
-                $schoolYear = SchoolYear::where('legacy_old_id', $oldInv->school_year_id)->first();
-
-                $prepareFingerprint = [
-                    'type' => InvoiceTypeEnum::MONTHLY_FEE->value,
-                    'student_id' => $student->getKey(),
-                    'school_year_id' => $schoolYear->getKey(),
-                    'month' => $oldInv->month_id,
-                ];
-
-                $branch = Branch::where('legacy_old_id', $oldInv->team_id)->first();
-
-                $classroom = Classroom::whereIn('school_id', $branch->schools()->pluck('id'))
-                    ->where('legacy_old_id', $oldInv->classroom_id)
-                    ->first();
-
-                if (Invoice::where('legacy_old_id', $oldInv->id)->exists()) {
-                    continue;
-                }
-
-                if (blank($classroom)) {
-                    $studentNoClassroom[] = $student->name;
-
-                    continue;
-                }
-
-                $this->info('Buat invoice spp ' . $student->name . 'dengan id' . $oldInv->id);
-
-                Invoice::createQuietly([
-                    'id' => str()->ulid(),
-                    'legacy_old_id' => $oldInv->id,
-                    'fingerprint' => Invoice::generateFingerprint($prepareFingerprint),
-                    'reference_number' => Invoice::generateReferenceNumber(),
-
-                    'branch_id' => $branch->getKey(),
-                    'school_id' => $classroom->school_id,
-                    'classroom_id' => $classroom->id,
-                    'school_year_id' => $schoolYear->id,
-                    'student_id' => $student->id,
-
-                    'branch_name' => $classroom->school->branch->name,
-                    'school_name' => $classroom->school->name,
-                    'classroom_name' => $classroom->name,
-                    'school_year_name' => $schoolYear->name,
-                    'student_name' => $student->name,
-
-                    'type' => InvoiceTypeEnum::MONTHLY_FEE,
-                    'month' => $oldInv->month_id,
-
-                    'amount' => $oldInv->cost,
-                    'fine' => $oldInv->fine,
-                    'discount' => $oldInv->discount,
-                    'total_amount' => $oldInv->cost,
-                    'status' => $this->getInvoiceStatus($oldInv),
-                    'payment_method' => $oldInv->payment_method_id,
-
-                    'due_date' => $oldInv->end_date,
-                    'issued_at' => $oldInv->start_date,
-                    'paid_at' => $oldInv->paid_date,
-                    'description' => $oldInv->description,
-                    'created_at' => $oldInv->created_at,
-                    'updated_at' => $oldInv->updated_at,
-                ]);
-            }
-
-            $legacyBookInvoices = DB::connection('legacy')
-                ->table('student_book_bill')
-                ->where('student_id', $oldStudent->id)
-                ->get();
-
-            foreach ($legacyBookInvoices as $legacyBookInvoice) {
-                $schoolYear = SchoolYear::where('legacy_old_id', $legacyBookInvoice->school_year_id)->first();
-
-                $prepareFingerprint = [
-                    'type' => InvoiceTypeEnum::BOOK_FEE->value,
-                    'student_id' => $student->getKey(),
-                    'school_year_id' => $schoolYear->getKey(),
-                ];
-
-                $branch = Branch::where('legacy_old_id', $legacyBookInvoice->team_id)->first();
-
-                $classroom = Classroom::whereIn('school_id', $branch->schools()->pluck('id'))
-                    ->where('legacy_old_id', $legacyBookInvoice->classroom_id)
-                    ->first();
-
-                if (Invoice::where('legacy_old_id', $legacyBookInvoice->id)->exists()) {
-                    continue;
-                }
-
-                if (blank($classroom)) {
-                    $studentNoClassroom[] = $student->name;
-
-                    continue;
-                }
-
-                $this->info('Buat invoice buku ' . $student->name . 'dengan id' . $legacyBookInvoice->id);
-
-                Invoice::createQuietly([
-                    'id' => str()->ulid(),
-                    'legacy_old_id' => $legacyBookInvoice->id,
-                    'fingerprint' => Invoice::generateFingerprint($prepareFingerprint),
-                    'reference_number' => Invoice::generateReferenceNumber(),
-
-                    'branch_id' => $branch->getKey(),
-                    'school_id' => $classroom->school_id,
-                    'classroom_id' => $classroom->id,
-                    'school_year_id' => $schoolYear->id,
-                    'student_id' => $student->id,
-
-                    'branch_name' => $classroom->school->branch->name,
-                    'school_name' => $classroom->school->name,
-                    'classroom_name' => $classroom->name,
-                    'school_year_name' => $schoolYear->name,
-                    'student_name' => $student->name,
-
-                    'type' => InvoiceTypeEnum::BOOK_FEE,
-
-                    'amount' => $legacyBookInvoice->cost,
-                    'discount' => $legacyBookInvoice->discount,
-                    'total_amount' => $legacyBookInvoice->cost,
-                    'status' => $this->getBookInvoiceStatus($legacyBookInvoice),
-                    'payment_method' => $legacyBookInvoice->payment_method_id,
-
-                    'due_date' => $legacyBookInvoice->end_date,
-                    'issued_at' => $legacyBookInvoice->start_date,
-                    'paid_at' => $legacyBookInvoice->paid_date,
-                    'description' => $legacyBookInvoice->description,
-                    'created_at' => $legacyBookInvoice->created_at,
-                    'updated_at' => $legacyBookInvoice->updated_at,
-                ]);
-            }
-        }
+        $this->migrateStudentBiils($legacyStudents);
 
         if (blank($studentNoClassroom)) {
-            $this->info('Tidak ada data yang tidak memiliki kelas');
+            $this->info('Tidak ada data siswa yang tidak memiliki kelas');
         } else {
-            $this->info('Data yang tidak memiliki kelas: ' . implode(', ', $studentNoClassroom));
+            $this->info('Data siswa yang tidak memiliki kelas: ' . implode(', ', $studentNoClassroom));
         }
 
         if (blank($studentCancel)) {
-            $this->info('Tidak ada data yang tidak memiliki kelas');
+            $this->info('Tidak ada data siswa yang dibatalkan');
         } else {
-            $this->info('Data yang tidak memiliki kelas: ' . implode(', ', $studentCancel));
+            $this->info('Data siswa yang dibatalkan: ' . implode(', ', $studentCancel));
         }
 
         $this->info('Migrasi selesai!');
@@ -415,6 +275,10 @@ class MigrateLegacyData extends Command
         if (
             $oldInv->is_active === 0 && $oldInv->paid_date === null && $oldInv->payment_method_id !== null
         ) {
+            return InvoiceStatusEnum::VOID;
+        }
+
+        if(blank($oldInv->is_active)){
             return InvoiceStatusEnum::VOID;
         }
 
@@ -589,5 +453,161 @@ class MigrateLegacyData extends Command
         }
 
         return $legacySchoolYears;
+    }
+
+    protected function migrateStudentBiils($legacyStudents)
+    {
+
+        foreach ($legacyStudents as $oldStudent) {
+
+            $student = Student::where('legacy_old_id', $oldStudent->id)->first();
+
+            $legacyInvoices = DB::connection('legacy')
+                ->table('student_spp_bill')
+                ->where('student_id', $oldStudent->id)
+                ->get();
+
+            $this->migrateStudentSppBills($legacyInvoices, $student);
+
+            // $legacyBookInvoices = DB::connection('legacy')
+            //     ->table('student_book_bill')
+            //     ->where('student_id', $oldStudent->id)
+            //     ->get();
+
+            // $this->migrateStudentBookBills($legacyBookInvoices, $student);
+        }
+    }
+
+    protected function migrateStudentSppBills($legacyInvoices, $student)
+    {
+        foreach ($legacyInvoices as $oldInv) {
+            $schoolYear = SchoolYear::where('legacy_old_id', $oldInv->school_year_id)->first();
+
+            $prepareFingerprint = [
+                'type' => InvoiceTypeEnum::MONTHLY_FEE->value,
+                'student_id' => $student->getKey(),
+                'school_year_id' => $schoolYear->getKey(),
+                'month' => $oldInv->month_id,
+            ];
+
+            $branch = Branch::where('legacy_old_id', $oldInv->team_id)->first();
+
+            $classroom = Classroom::whereIn('school_id', $branch->schools()->pluck('id'))
+                ->where('legacy_old_id', $oldInv->classroom_id)
+                ->first();
+
+            if (Invoice::where('legacy_old_id', $oldInv->id)->exists()) {
+                continue;
+            }
+
+            if (blank($classroom)) {
+                $studentNoClassroom[] = $student->name;
+
+                continue;
+            }
+
+            $this->info('Buat invoice spp ' . $student->name . ' dengan id:' . $oldInv->id);
+
+            Invoice::createQuietly([
+                'id' => str()->ulid(),
+                'legacy_old_id' => $oldInv->id,
+                'fingerprint' => Invoice::generateFingerprint($prepareFingerprint),
+                'reference_number' => Invoice::generateReferenceNumber(),
+
+                'branch_id' => $branch->getKey(),
+                'school_id' => $classroom->school_id,
+                'classroom_id' => $classroom->id,
+                'school_year_id' => $schoolYear->id,
+                'student_id' => $student->id,
+
+                'branch_name' => $classroom->school->branch->name,
+                'school_name' => $classroom->school->name,
+                'classroom_name' => $classroom->name,
+                'school_year_name' => $schoolYear->name,
+                'student_name' => $student->name,
+
+                'type' => InvoiceTypeEnum::MONTHLY_FEE,
+                'month' => $oldInv->month_id,
+
+                'amount' => $oldInv->cost,
+                'fine' => $oldInv->fine,
+                'discount' => $oldInv->discount,
+                'total_amount' => $oldInv->cost,
+                'status' => $this->getInvoiceStatus($oldInv),
+                'payment_method' => $oldInv->payment_method_id,
+
+                'due_date' => $oldInv->end_date,
+                'issued_at' => $oldInv->start_date,
+                'paid_at' => $oldInv->paid_date,
+                'description' => $oldInv->description,
+                'created_at' => $oldInv->created_at,
+                'updated_at' => $oldInv->updated_at,
+            ]);
+        }
+    }
+
+    protected function migrateStudentBookBills($legacyBookInvoices, $student)
+    {
+        foreach ($legacyBookInvoices as $legacyBookInvoice) {
+            $schoolYear = SchoolYear::where('legacy_old_id', $legacyBookInvoice->school_year_id)->first();
+
+            $prepareFingerprint = [
+                'type' => InvoiceTypeEnum::BOOK_FEE->value,
+                'student_id' => $student->getKey(),
+                'school_year_id' => $schoolYear->getKey(),
+            ];
+
+            $branch = Branch::where('legacy_old_id', $legacyBookInvoice->team_id)->first();
+
+            $classroom = Classroom::whereIn('school_id', $branch->schools()->pluck('id'))
+                ->where('legacy_old_id', $legacyBookInvoice->classroom_id)
+                ->first();
+
+            if (Invoice::where('legacy_old_id', $legacyBookInvoice->id)->exists()) {
+                continue;
+            }
+
+            if (blank($classroom)) {
+                $studentNoClassroom[] = $student->name;
+
+                continue;
+            }
+
+            $this->info('Buat invoice buku ' . $student->name . 'dengan id' . $legacyBookInvoice->id);
+
+            Invoice::createQuietly([
+                'id' => str()->ulid(),
+                'legacy_old_id' => $legacyBookInvoice->id,
+                'fingerprint' => Invoice::generateFingerprint($prepareFingerprint),
+                'reference_number' => Invoice::generateReferenceNumber(),
+
+                'branch_id' => $branch->getKey(),
+                'school_id' => $classroom->school_id,
+                'classroom_id' => $classroom->id,
+                'school_year_id' => $schoolYear->id,
+                'student_id' => $student->id,
+
+                'branch_name' => $classroom->school->branch->name,
+                'school_name' => $classroom->school->name,
+                'classroom_name' => $classroom->name,
+                'school_year_name' => $schoolYear->name,
+                'student_name' => $student->name,
+
+                'type' => InvoiceTypeEnum::BOOK_FEE,
+
+                'amount' => $legacyBookInvoice->cost,
+                'discount' => $legacyBookInvoice->discount,
+                'total_amount' => $legacyBookInvoice->cost,
+                'status' => $this->getBookInvoiceStatus($legacyBookInvoice),
+                'payment_method' => $legacyBookInvoice->payment_method_id,
+
+                'due_date' => $legacyBookInvoice->end_date,
+                'issued_at' => $legacyBookInvoice->start_date,
+                'paid_at' => $legacyBookInvoice->paid_date,
+                'description' => $legacyBookInvoice->description,
+                'created_at' => $legacyBookInvoice->created_at,
+                'updated_at' => $legacyBookInvoice->updated_at,
+            ]);
+        }
     }
 }

@@ -51,7 +51,7 @@ class StudentForm
                                     Textarea::make('notes')
                                         ->label('Catatan Tambahan')
                                         ->columnSpanFull(),
-                                ]),
+                                ])->columns(2),
                             ])
                             ->icon('tabler-list-details'),
                         Tab::make('Akun Pembayaran')
