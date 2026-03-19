@@ -54,6 +54,7 @@ class OrderItem extends Model
 
     /** @use HasFactory<\Database\Factories\OrderItemFactory> */
     use HasFactory;
+
     use HasUlids;
 
     protected $guarded = ['id'];

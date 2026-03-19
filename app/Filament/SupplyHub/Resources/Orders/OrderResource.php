@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\SupplyHub\Resources\Orders;
 
 use App\Filament\SupplyHub\Resources\Orders\Pages\CreateOrder;
@@ -18,7 +20,7 @@ class OrderResource extends Resource
 {
     protected static ?string $model = Order::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static bool $isScopedToTenant = false;
 
@@ -35,7 +37,7 @@ class OrderResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+
         ];
     }
 

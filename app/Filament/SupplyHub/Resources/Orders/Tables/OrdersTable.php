@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Filament\SupplyHub\Resources\Orders\Tables;
 
 use Filament\Actions\BulkActionGroup;
@@ -14,12 +16,9 @@ class OrdersTable
     {
         return $table
             ->columns([
-                TextColumn::make('id')
-                    ->label('ID')
-                    ->searchable(),
                 TextColumn::make('supplier.name')
                     ->searchable(),
-                TextColumn::make('schoolYear.id')
+                TextColumn::make('schoolYear.name')
                     ->searchable(),
                 TextColumn::make('ordered_at')
                     ->date()
@@ -37,19 +36,9 @@ class OrdersTable
                     ->searchable(),
                 TextColumn::make('person_in_charge')
                     ->searchable(),
-                TextColumn::make('notes')
-                    ->searchable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+
             ])
             ->recordActions([
                 EditAction::make(),
