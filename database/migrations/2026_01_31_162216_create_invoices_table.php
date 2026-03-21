@@ -44,7 +44,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('payment_method')->nullable();
             $table->dateTime('paid_at')->nullable();
 
-            $table->string('payment_reference')->nullable()->index();
+            $table->string('payment_reference')->nullable()->index(); // for group payment
 
             $table->text('description')->nullable();
 

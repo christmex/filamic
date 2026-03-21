@@ -13,3 +13,20 @@
 - [ ] print laporan uang buku
 
 - [ ] kenaikan kelas
+
+# BACKLOG
+
+- [ ] ganti protected $casts di Invoice.php ganti jadi function
+- [ ] buat global scope untuk lngsung filter berdasrkan branch deh, biar g ada kesalahan
+- [ ] DATA BERMASALAH
+      // Illuminate\Support\Collection {#8785 ▼ // routes/web.php:52
+      // #items: array:6 [▼
+      // "01km2epzrfb0rdxcqc41fhxw1g" => "Miracle J Letticia"
+      // "01km2eq0qaqtq8eywmvz1yb57y" => "Frishila Maria Rajagukguk"
+      // "01km2eq2trz2vktrr9hwwhkvcf" => "Brian Putra Raden Simbolon"
+      // "01km2eq2vdqyhkhtdy2rz4cgr2" => "Eudora Kameaprasita Hudaya"
+      // "01km2eq2w8jgazvs792q5tkrv0" => "Smith Dyto Siagian"
+      // "01km2eq2wz2b1mk1aykw29g6t1" => "Tri Jeniyanti Linggi Allo"
+      // ]
+      // #escapeWhenCastingToString: false
+      // }

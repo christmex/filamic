@@ -16,7 +16,13 @@
       "Bash(php:*)",
       "Bash(git stash)",
       "Bash(git stash pop)",
-      "Bash(mcp__playwright:*)"
+      "Bash(mcp__playwright:*)",
+      "Bash(vendor/bin/phpstan analyse:*)",
+      "Bash(vendor/bin/pint:*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "laravel-boost",
+    "herd"
+  ]
 }

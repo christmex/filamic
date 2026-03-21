@@ -31,6 +31,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Database\Factories\StudentPaymentAccountFactory factory($count = null, $state = [])
  * @method static Builder<static>|StudentPaymentAccount newModelQuery()
  * @method static Builder<static>|StudentPaymentAccount newQuery()
+ * @method static Builder<static>|StudentPaymentAccount notEligibleForMonthlyFee()
  * @method static Builder<static>|StudentPaymentAccount query()
  * @method static Builder<static>|StudentPaymentAccount whereBookFeeAmount($value)
  * @method static Builder<static>|StudentPaymentAccount whereBookFeeVirtualAccount($value)
@@ -59,6 +60,15 @@ class StudentPaymentAccount extends Model
     {
         return $query->whereNotNull($query->qualifyColumn('monthly_fee_virtual_account'))
             ->where($query->qualifyColumn('monthly_fee_amount'), '>', 0);
+    }
+
+    #[Scope]
+    protected function notEligibleForMonthlyFee(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q): void {
+            $q->whereNull($q->qualifyColumn('monthly_fee_virtual_account'))
+                ->orWhere($q->qualifyColumn('monthly_fee_amount'), '=', 0);
+        });
     }
 
     #[Scope]

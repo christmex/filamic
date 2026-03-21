@@ -1,13 +1,20 @@
 {
     "agents": [
-        "cursor"
-    ],
-    "editors": [
         "cursor",
-        "vscode"
+        "claude_code",
+        "codex"
     ],
-    "guidelines": [
-        "filament/filament"
+    "guidelines": true,
+    "herd_mcp": true,
+    "mcp": true,
+    "packages": [
+        "filament/filament",
+        "spatie/laravel-ray"
     ],
-    "herd_mcp": true
+    "sail": false,
+    "skills": [
+        "pest-testing",
+        "tailwindcss-development",
+        "debugging-output-and-previewing-html-using-ray"
+    ]
 }

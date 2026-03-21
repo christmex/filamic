@@ -7,6 +7,7 @@ namespace App\Filament\Finance\Resources\Students\Pages;
 use App\Actions\GenerateMonthlyFeeInvoice;
 use App\Enums\MonthEnum;
 use App\Filament\Finance\Resources\Students\StudentResource;
+use App\Models\Invoice;
 use App\Models\SchoolTerm;
 use App\Models\SchoolYear;
 use App\Models\Student;
@@ -15,11 +16,18 @@ use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Wizard\Step;
+use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Throwable;
 
 class ListStudents extends ListRecords
@@ -61,6 +69,9 @@ class ListStudents extends ListRecords
             ->label('Uang Sekolah')
             ->requiresConfirmation()
             ->modalIcon('tabler-invoice')
+            ->slideOver()
+            ->modalWidth(Width::FourExtraLarge)
+            ->modalAlignment(Alignment::Start)
             ->modalHeading('Buat Tagihan SPP')
             ->modalIconColor('success')
             ->modalDescription(function () {
@@ -76,34 +87,87 @@ class ListStudents extends ListRecords
                     ->markdown()
                     ->toHtmlString();
             })
-            ->schema([
-                Group::make([
-                    Select::make('month')
-                        ->options(function () {
-                            // TODO: Restrict options to only show the next month to prevent users from selecting other months
-                            $currentTerm = SchoolTerm::getActive();
-                            if (blank($currentTerm)) {
-                                return [];
-                            }
-                            $allowedMonths = $currentTerm->getAllowedMonths();
+            ->steps([
+                Step::make('Konfigurasi')
+                    ->icon('tabler-settings')
+                    ->description('Pilih bulan dan tanggal tagihan')
+                    ->schema([
+                        Group::make([
+                            Select::make('month')
+                                ->options(function () {
+                                    $currentTerm = SchoolTerm::getActive();
+                                    if (blank($currentTerm)) {
+                                        return [];
+                                    }
 
-                            return collect(MonthEnum::filterByMonths($allowedMonths))
-                                ->mapWithKeys(fn ($month) => [$month->value => $month->getLabel()])
-                                ->toArray();
-                        })
-                        ->required()
-                        ->label('Bulan')
-                        ->selectablePlaceholder(false)
-                        ->default(now()->addMonth()->month)
-                        ->columnSpanFull(),
-                    DatePicker::make('issued_at')
-                        ->label('Tagihan Dibuka')
-                        ->default(now()->setDay(28)),
-                    DatePicker::make('due_date')
-                        ->label('Tagihan Berakhir')
-                        ->after('issued_at')
-                        ->default(now()->addMonth()->setDay(20)),
-                ])->columns(2),
+                                    $allowedMonths = $currentTerm->getAllowedMonths();
+
+                                    return collect(MonthEnum::filterByMonths($allowedMonths))
+                                        ->mapWithKeys(fn ($month) => [$month->value => $month->getLabel()])
+                                        ->toArray();
+                                })
+                                ->required()
+                                ->label('Bulan')
+                                ->live()
+                                ->selectablePlaceholder(false)
+                                ->default(now()->addMonth()->month)
+                                ->columnSpanFull(),
+                            DatePicker::make('issued_at')
+                                ->label('Tagihan Dibuka')
+                                ->required()
+                                ->default(now()->setDay(28)),
+                            DatePicker::make('due_date')
+                                ->label('Tagihan Berakhir')
+                                ->required()
+                                ->after('issued_at')
+                                ->default(now()->addMonth()->setDay(20)),
+                        ])->columns(2),
+                    ]),
+
+                Step::make('Pratinjau')
+                    ->icon('tabler-list-check')
+                    ->description('Periksa data sebelum membuat tagihan')
+                    ->schema(function (Get $get): array {
+                        $draft = self::buildDraftPreview((int) $get('month'));
+
+                        return [
+                            Callout::make('Ringkasan')
+                                ->description(
+                                    str(
+                                        "Total Siswa Aktif: **{$draft['total']}** " .
+                                        "= Siap Dibuat: **{$draft['ready']}** " .
+                                        "+ Sudah Punya Tagihan: **{$draft['invoiced']}** " .
+                                        "+ Belum Siap: **{$draft['not_eligible_count']}**"
+                                    )->inlineMarkdown()->toHtmlString()
+                                )
+                                ->info()
+                                ->columnSpanFull(),
+
+                            KeyValueEntry::make('not_eligible')
+                                ->label('Peserta Didik Yang Belum Siap Dibuatkan Tagihan')
+                                ->keyLabel('Nama')
+                                ->valueLabel('Alasan')
+                                ->columnSpanFull()
+                                ->state(
+                                    $draft['not_eligible_list']
+                                        ->values()
+                                        ->mapWithKeys(fn (array $item, int $index) => [($index + 1) . '. ' . $item['name'] => $item['reason']])
+                                        ->toArray()
+                                ),
+
+                            KeyValueEntry::make('invoiced')
+                                ->label('Peserta Didik Yang Sudah Memiliki Tagihan')
+                                ->keyLabel('Nama')
+                                ->valueLabel('Status')
+                                ->columnSpanFull()
+                                ->state(
+                                    $draft['invoiced_list']
+                                        ->values()
+                                        ->mapWithKeys(fn (array $item, int $index) => [($index + 1) . '. ' . $item['name'] => $item['status']])
+                                        ->toArray()
+                                ),
+                        ];
+                    }),
             ])
             ->action(function (array $data) {
                 try {
@@ -129,8 +193,6 @@ class ListStudents extends ListRecords
                         ->send();
 
                 } catch (\Illuminate\Database\QueryException $error) {
-                    // SQLSTATE 23000 = Integrity constraint violation (duplicate key)
-                    // Check for unique constraint on fingerprint column
                     if ($error->getCode() === '23000' && str_contains(mb_strtolower($error->getMessage()), 'fingerprint')) {
                         Notification::make()
                             ->title('Invoice sudah dibuat sebelumnya!')
@@ -140,7 +202,6 @@ class ListStudents extends ListRecords
                         return;
                     }
 
-                    // If it's not a duplicate error, rethrow to be handled by the outer catch
                     throw $error;
                 } catch (Throwable $error) {
                     report($error);
@@ -155,6 +216,90 @@ class ListStudents extends ListRecords
                     return;
                 }
             });
+    }
+
+    /**
+     * @return array{total: int, ready: int, invoiced: int, not_eligible_count: int, not_eligible_list: Collection, invoiced_list: Collection}
+     */
+    private static function buildDraftPreview(int $month): array
+    {
+        $branchId = filament()->getTenant()->getKey();
+
+        $activeStudents = Student::active()
+            ->where('branch_id', $branchId)
+            ->with(['currentEnrollment', 'currentPaymentAccount'])
+            ->get();
+
+        $totalActive = $activeStudents->count();
+
+        $invoicedInvoices = Invoice::where('branch_id', $branchId)
+            ->monthlyFeeForThisSchoolYear(month: $month)
+            ->with('student')
+            ->get();
+
+        $invoicedStudentIds = $invoicedInvoices->pluck('student_id');
+
+        $invoicedList = $invoicedInvoices->map(fn (Invoice $invoice): array => [
+            'name' => $invoice->student->name,
+            'status' => $invoice->status->getLabel(),
+        ]);
+
+        $readyStudentIds = Student::active()
+            ->where('branch_id', $branchId)
+            ->whereHas('currentEnrollment')
+            ->whereHas('currentPaymentAccount', function ($query): void {
+                // @phpstan-ignore method.notFound (Larastan cannot resolve scopes inside whereHas closures)
+                $query->eligibleForMonthlyFee();
+            })
+            ->whereDoesntHave('invoices', function ($query) use ($month): void {
+                // @phpstan-ignore method.notFound (Larastan cannot resolve scopes inside whereDoesntHave closures)
+                $query->monthlyFeeForThisSchoolYear(month: $month);
+            })
+            ->pluck('id');
+
+        $readyCount = $readyStudentIds->count();
+
+        $notEligibleStudents = $activeStudents->reject(
+            fn (Student $student): bool => $invoicedStudentIds->contains($student->getKey())
+                || $readyStudentIds->contains($student->getKey())
+        );
+
+        $notEligibleList = $notEligibleStudents->values()->map(fn (Student $student): array => [
+            'name' => $student->name,
+            'reason' => self::getIneligibilityReason($student),
+        ]);
+
+        return [
+            'total' => $totalActive,
+            'ready' => $readyCount,
+            'invoiced' => $invoicedList->count(),
+            'not_eligible_count' => $notEligibleList->count(),
+            'not_eligible_list' => $notEligibleList,
+            'invoiced_list' => $invoicedList,
+        ];
+    }
+
+    private static function getIneligibilityReason(Student $student): string
+    {
+        if (blank($student->currentEnrollment)) {
+            return 'Belum punya pendaftaran aktif';
+        }
+
+        if (blank($student->currentPaymentAccount)) {
+            return 'Belum punya akun pembayaran';
+        }
+
+        $paymentAccount = $student->currentPaymentAccount;
+
+        if ($paymentAccount->monthly_fee_virtual_account === null) {
+            return 'VA SPP belum diisi';
+        }
+
+        if ($paymentAccount->monthly_fee_amount <= 0) {
+            return 'Biaya SPP belum diisi';
+        }
+
+        return 'Data tidak lengkap';
     }
 
     public function getTabs(): array
