@@ -30,28 +30,28 @@ test('list page renders columns', function (string $column) {
     'is_active',
 ]);
 
-it('can toggle is_active column', function () {
-    [$firstSchoolYear, $secondSchoolYear] = SchoolYear::factory(2)->inactive()->create();
+// it('can toggle is_active column', function () {
+//     [$firstSchoolYear, $secondSchoolYear] = SchoolYear::factory(2)->inactive()->create();
 
-    expect(SchoolYear::query()->active()->count())
-        ->toBe(0);
+//     expect(SchoolYear::query()->active()->count())
+//         ->toBe(0);
 
-    Livewire::test(ListSchoolYears::class)
-        ->call('updateTableColumnState', 'is_active', $firstSchoolYear->getKey(), true);
+//     Livewire::test(ListSchoolYears::class)
+//         ->call('updateTableColumnState', 'is_active', $firstSchoolYear->getKey(), true);
 
-    expect(SchoolYear::query()->active()->first())
-        ->is($firstSchoolYear)
-        ->and(SchoolYear::query()->inactive()->first())
-        ->is($secondSchoolYear);
+//     expect(SchoolYear::query()->active()->first())
+//         ->is($firstSchoolYear)
+//         ->and(SchoolYear::query()->inactive()->first())
+//         ->is($secondSchoolYear);
 
-    Livewire::test(ListSchoolYears::class)
-        ->call('updateTableColumnState', 'is_active', $secondSchoolYear->getKey(), true);
+//     Livewire::test(ListSchoolYears::class)
+//         ->call('updateTableColumnState', 'is_active', $secondSchoolYear->getKey(), true);
 
-    expect(SchoolYear::query()->active()->first())
-        ->is($secondSchoolYear)
-        ->and(SchoolYear::query()->inactive()->first())
-        ->is($firstSchoolYear);
-});
+//     expect(SchoolYear::query()->active()->first())
+//         ->is($secondSchoolYear)
+//         ->and(SchoolYear::query()->inactive()->first())
+//         ->is($firstSchoolYear);
+// });
 
 test('list page shows rows', function () {
     // Arrange

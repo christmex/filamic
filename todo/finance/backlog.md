@@ -11,6 +11,7 @@
 - [ ] print bukti pembayaran uang spp
 - [ ] print laporan uang spp
 - [ ] print laporan uang buku
+- [ ] filter yang punya tagihan saja
 
 - [ ] kenaikan kelas
 

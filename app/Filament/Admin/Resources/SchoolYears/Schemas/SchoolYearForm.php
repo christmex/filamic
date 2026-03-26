@@ -19,6 +19,7 @@ class SchoolYearForm
         return $schema
             ->components([
                 Section::make()
+                    ->columns(2)
                     ->schema([
                         TextInput::make('start_year')
                             ->required()

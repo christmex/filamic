@@ -17,6 +17,12 @@ abstract class AcademicPeriod extends Model
 
     protected static function booted(): void
     {
+        static::saving(function ($model) {
+            if ($model->is_active) {
+                $model::deactivateOthers();
+            }
+        });
+
         static::saved(function ($model) {
             if (! $model->wasChanged('is_active')) {
                 return;

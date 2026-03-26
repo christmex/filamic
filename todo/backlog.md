@@ -1,12 +1,17 @@
 # Backlog
 
+- [ ] pikirkan kembali proses kenaikan kelas, proses perpindahan tahun ajaran dan semester
+
 ## SupplyHub Follow-ups
+
 - [ ] [P2] Enforce student-branch integrity for stock distribution.
 - [ ] [P2] Align stock adjustment UI with backend support for negative adjustment quantity.
 - [ ] [P3] Replace direct stock edits with movement-based adjustments for audit trail.
 
 ## Order Flow (SupplyHub Global Admin PO)
+
 ### P0 - Core Domain + Flow
+
 - [ ] [P0] Create PO schema: `purchase_orders`, `purchase_order_lines`, `purchase_order_line_branch_allocations`, `purchase_receipts`, `purchase_receipt_lines`.
 - [ ] [P0] Add enums: `PurchaseOrderStatusEnum`, `DiscountTypeEnum`, `ReceiveModeEnum`.
 - [ ] [P0] Add models: `PurchaseOrder`, `PurchaseOrderLine`, `PurchaseOrderLineBranchAllocation`, `PurchaseReceipt`, `PurchaseReceiptLine`.
@@ -22,16 +27,19 @@
 - [ ] [P0] Add explicit authorization for PO access (procurement-admin capability).
 
 ### P1 - Ops Improvements
+
 - [ ] [P1] Add "distribute from central receipt" shortcut flow to transfer operations.
 - [ ] [P1] Add PO aging report and outstanding quantity report.
 - [ ] [P1] Add price-change history report by item/supplier/PO.
 
 ### P2 - Accounting and Procurement Expansion
+
 - [ ] [P2] Replace temporary latest-cost policy with moving-average or FIFO cost ledger.
 - [ ] [P2] Add supplier invoice matching (procure-to-pay phase 2).
 - [ ] [P2] Add supplier payment tracking workflow.
 
 ### Test Coverage
+
 - [ ] [P0] Test draft PO creation with mandatory supplier + school year.
 - [ ] [P0] Test allocation mismatch validation (sum(branch planned qty) must equal line ordered qty).
 - [ ] [P0] Test partial receipt status transition (`SUBMITTED` -> `PARTIALLY_RECEIVED`).

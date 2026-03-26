@@ -41,10 +41,12 @@ trait HasActiveState
 
     public static function deactivateOthers(): void
     {
-        static::query()
-            ->lockForUpdate()
-            ->active()
-            ->update(['is_active' => false]);
+        DB::transaction(function () {
+            static::query()
+                ->lockForUpdate()
+                ->active()
+                ->update(['is_active' => false]);
+        });
     }
 
     public function activateExclusively(): void
