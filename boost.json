@@ -5,16 +5,19 @@
         "codex"
     ],
     "guidelines": true,
-    "herd_mcp": true,
     "mcp": true,
+    "nightwatch_mcp": false,
     "packages": [
         "filament/filament",
-        "spatie/laravel-ray"
+        "spatie/laravel-ray",
+        "lorisleiva/laravel-actions"
     ],
     "sail": false,
     "skills": [
+        "laravel-best-practices",
         "pest-testing",
         "tailwindcss-development",
+        "laravel-actions",
         "debugging-output-and-previewing-html-using-ray"
     ]
 }
