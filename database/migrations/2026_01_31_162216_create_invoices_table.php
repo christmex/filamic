@@ -43,6 +43,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('status')->default(1)->index();
             $table->unsignedTinyInteger('payment_method')->nullable();
             $table->dateTime('paid_at')->nullable();
+            $table->dateTime('paid_at_app')->nullable();
 
             $table->string('payment_reference')->nullable()->index(); // for group payment
 

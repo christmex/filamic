@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\GenderEnum;
+use App\Enums\GradeEnum;
 use App\Enums\ReligionEnum;
 use App\Enums\StatusInFamilyEnum;
 use App\Models\Traits\BelongsToBranch;
@@ -12,6 +13,7 @@ use App\Models\Traits\BelongsToClassroom;
 use App\Models\Traits\BelongsToSchool;
 use App\Models\Traits\BelongsToUser;
 use App\Models\Traits\HasActiveState;
+use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -32,6 +34,10 @@ use Illuminate\Support\Number;
  * @property string|null $school_id
  * @property string|null $classroom_id
  * @property string|null $user_id
+ * @property string|null $monthly_fee_virtual_account
+ * @property string|null $book_fee_virtual_account
+ * @property int $monthly_fee_amount
+ * @property int $book_fee_amount
  * @property string|null $nisn
  * @property string|null $nis
  * @property GenderEnum $gender
@@ -83,12 +89,17 @@ use Illuminate\Support\Number;
  *
  * @method static Builder<static>|Student active()
  * @method static \Database\Factories\StudentFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Student hasNoProblems()
+ * @method static Builder<static>|Student hasProblems()
  * @method static Builder<static>|Student inactive()
  * @method static Builder<static>|Student newModelQuery()
  * @method static Builder<static>|Student newQuery()
+ * @method static Builder<static>|Student notInFinalYears()
  * @method static Builder<static>|Student query()
  * @method static Builder<static>|Student whereBirthDate($value)
  * @method static Builder<static>|Student whereBirthPlace($value)
+ * @method static Builder<static>|Student whereBookFeeAmount($value)
+ * @method static Builder<static>|Student whereBookFeeVirtualAccount($value)
  * @method static Builder<static>|Student whereBranchId($value)
  * @method static Builder<static>|Student whereClassroomId($value)
  * @method static Builder<static>|Student whereCreatedAt($value)
@@ -104,6 +115,8 @@ use Illuminate\Support\Number;
  * @method static Builder<static>|Student whereJoinedAtClass($value)
  * @method static Builder<static>|Student whereLegacyOldId($value)
  * @method static Builder<static>|Student whereMetadata($value)
+ * @method static Builder<static>|Student whereMonthlyFeeAmount($value)
+ * @method static Builder<static>|Student whereMonthlyFeeVirtualAccount($value)
  * @method static Builder<static>|Student whereMotherJob($value)
  * @method static Builder<static>|Student whereMotherName($value)
  * @method static Builder<static>|Student whereName($value)
@@ -153,21 +166,6 @@ class Student extends Model
             // TODO: validate if the classroom_id belongsto school_id and the school_od belongsto branch_id
         });
     }
-
-    // public function father(): BelongsTo
-    // {
-    //     return $this->belongsTo(User::class, 'father_id');
-    // }
-
-    // public function mother(): BelongsTo
-    // {
-    //     return $this->belongsTo(User::class, 'mother_id');
-    // }
-
-    // public function guardian(): BelongsTo
-    // {
-    //     return $this->belongsTo(User::class, 'guardian_id');
-    // }
 
     public function paymentAccounts(): HasMany
     {
@@ -229,6 +227,26 @@ class Student extends Model
     public function currentClassroom(): HasOneThrough
     {
         return $this->hasOneThrough(Classroom::class, StudentEnrollment::class, 'student_id', 'id', 'id', 'classroom_id');
+    }
+
+    #[Scope]
+    protected function notInFinalYears(Builder $query): Builder
+    {
+        return $query->whereDoesntHave('classroom', function (Builder $query) {
+            $query->whereIn('grade', GradeEnum::finalYears());
+        });
+    }
+
+    #[Scope]
+    protected function hasProblems(Builder $query): Builder
+    {
+        return $query->whereDoesntHave('currentEnrollment')->orWhereDoesntHave('currentPaymentAccount');
+    }
+
+    #[Scope]
+    protected function hasNoProblems(Builder $query): Builder
+    {
+        return $query->whereHas('currentEnrollment')->whereHas('currentPaymentAccount');
     }
 
     protected function initials(): Attribute

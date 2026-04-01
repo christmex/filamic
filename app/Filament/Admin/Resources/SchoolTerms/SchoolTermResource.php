@@ -8,8 +8,8 @@ use App\Filament\Admin\Resources\SchoolTerms\Pages\ManageSchoolTerms;
 use App\Models\SchoolTerm;
 use BackedEnum;
 use Filament\Resources\Resource;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 use UnitEnum;
 
@@ -29,7 +29,7 @@ class SchoolTermResource extends Resource
             ->paginated(false)
             ->columns([
                 TextColumn::make('name'),
-                IconColumn::make('is_active'),
+                ToggleColumn::make('is_active'),
             ]);
     }
 

@@ -123,7 +123,7 @@ class StudentsTable
                         return $indicator;
                     }),
 
-            ], FiltersLayout::AboveContent)
+            ], FiltersLayout::Modal)
             ->recordActions([
                 DeleteAction::make()->visible(fn (Student $record) => $record->canBeDelete()),
                 // EditAction::make(),

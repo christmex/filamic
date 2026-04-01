@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Resources\SchoolYears\Tables;
 
 use Filament\Actions\ViewAction;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 
 class SchoolYearsTable
@@ -16,7 +16,7 @@ class SchoolYearsTable
         return $table
             ->columns([
                 TextColumn::make('name'),
-                IconColumn::make('is_active'),
+                ToggleColumn::make('is_active'),
             ])
             ->recordActions([
                 ViewAction::make(),

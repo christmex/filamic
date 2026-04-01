@@ -36,7 +36,7 @@ class DatabaseSeeder extends Seeder
             $this->createSchoolYear();
             $this->createSchoolTerm();
             $this->createPosition();
-            // $this->createSchools();
+            $this->createSchools();
             // $this->createCurriculum();
             // $this->createSubjectCategories();
 
@@ -51,7 +51,7 @@ class DatabaseSeeder extends Seeder
 
             $user->branches()->sync(Branch::all());
 
-            // $this->createClassrooms();
+            $this->createClassrooms();
 
             // $this->createSubjects();
             // $this->createTeachers();

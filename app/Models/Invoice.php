@@ -52,6 +52,7 @@ use InvalidArgumentException;
  * @property InvoiceStatusEnum $status
  * @property PaymentMethodEnum|null $payment_method
  * @property Carbon|null $paid_at
+ * @property Carbon|null $paid_at_app
  * @property string|null $payment_reference
  * @property string|null $description
  * @property Carbon|null $created_at
@@ -70,6 +71,7 @@ use InvalidArgumentException;
  * @method static Builder<static>|Invoice activeTerm()
  * @method static Builder<static>|Invoice activeYear()
  * @method static Builder<static>|Invoice bookFee()
+ * @method static Builder<static>|Invoice bookFeeForNextSchoolYear()
  * @method static \Database\Factories\InvoiceFactory factory($count = null, $state = [])
  * @method static Builder<static>|Invoice monthlyFee()
  * @method static Builder<static>|Invoice monthlyFeeForThisSchoolYear(?int $month = null, ?string $schoolYearId = null)
@@ -98,6 +100,7 @@ use InvalidArgumentException;
  * @method static Builder<static>|Invoice whereLegacyOldId($value)
  * @method static Builder<static>|Invoice whereMonth($value)
  * @method static Builder<static>|Invoice wherePaidAt($value)
+ * @method static Builder<static>|Invoice wherePaidAtApp($value)
  * @method static Builder<static>|Invoice wherePaymentMethod($value)
  * @method static Builder<static>|Invoice wherePaymentReference($value)
  * @method static Builder<static>|Invoice whereReferenceNumber($value)
@@ -133,6 +136,7 @@ class Invoice extends Model
         'status' => InvoiceStatusEnum::class,
         'payment_method' => PaymentMethodEnum::class,
         'paid_at' => 'datetime',
+        'paid_at_app' => 'datetime',
         'issued_at' => 'date',
         'due_date' => 'date',
         'amount' => 'integer',
@@ -206,6 +210,17 @@ class Invoice extends Model
     protected function bookFee(Builder $query): Builder
     {
         return $query->where('type', InvoiceTypeEnum::BOOK_FEE);
+    }
+
+    /**
+     * @param  Builder<Invoice>  $query
+     * @return Builder<Invoice>
+     */
+    #[Scope]
+    protected function bookFeeForNextSchoolYear(Builder $query): Builder
+    {
+        return $query->bookFee()
+            ->where('school_year_id', SchoolYear::getActive()?->getKey());
     }
 
     #[Scope]

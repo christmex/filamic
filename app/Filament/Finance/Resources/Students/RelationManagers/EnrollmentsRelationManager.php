@@ -76,6 +76,8 @@ class EnrollmentsRelationManager extends RelationManager
                     ->label('Unit Sekolah'),
                 TextColumn::make('classroom.name')
                     ->label('Kelas'),
+                TextColumn::make('classroom.grade')
+                    ->label('Tingkat'),
                 TextColumn::make('schoolYear.name')
                     ->label('Tahun Ajaran'),
                 TextColumn::make('status')

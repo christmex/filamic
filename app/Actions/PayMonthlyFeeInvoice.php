@@ -69,6 +69,7 @@ class PayMonthlyFeeInvoice
                 $invoice->updateOrFail([
                     'status' => InvoiceStatusEnum::PAID,
                     'paid_at' => $validated['paid_at'],
+                    'paid_at_app' => now(),
                     'payment_method' => $validated['payment_method'],
                     'payment_reference' => $paymentReference,
                     'description' => $validated['description'],

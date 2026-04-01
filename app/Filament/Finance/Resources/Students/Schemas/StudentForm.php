@@ -51,6 +51,43 @@ class StudentForm
                                     Textarea::make('notes')
                                         ->label('Catatan Tambahan')
                                         ->columnSpanFull(),
+
+                                    // TextInput::make('monthly_fee_amount')
+                                    //     ->label('Nominal SPP Bulanan')
+                                    //     ->numeric()
+                                    //     ->prefix('Rp')
+                                    //     ->placeholder('0')
+                                    //     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 2)
+                                    //     ->minValue(0)
+                                    //     ->default(0)
+                                    //     ->required(),
+                                    // TextInput::make('book_fee_amount')
+                                    //     ->label('Nominal Biaya Buku')
+                                    //     ->numeric()
+                                    //     ->prefix('Rp')
+                                    //     ->placeholder('0')
+                                    //     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 2)
+                                    //     ->minValue(0)
+                                    //     ->default(0)
+                                    //     ->required(),
+                                    // TextInput::make('monthly_fee_virtual_account')
+                                    //     ->label('VA SPP Bulanan')
+                                    //     ->placeholder('Contoh: 103023001')
+                                    //     ->prefixIcon('tabler-credit-card')
+                                    //     ->numeric()
+                                    //     ->minLength(5)
+                                    //     ->maxLength(20)
+                                    //     ->unique(ignoreRecord: true)
+                                    //     ->different('book_fee_virtual_account'),
+                                    // TextInput::make('book_fee_virtual_account')
+                                    //     ->label('VA Biaya Buku')
+                                    //     ->placeholder('Contoh: 103023001')
+                                    //     ->prefixIcon('tabler-book')
+                                    //     ->numeric()
+                                    //     ->minLength(5)
+                                    //     ->maxLength(20)
+                                    //     ->unique(ignoreRecord: true)
+                                    //     ->different('monthly_fee_virtual_account'),
                                 ])->columns(2),
                             ])
                             ->icon('tabler-list-details'),

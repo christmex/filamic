@@ -19,3 +19,6 @@ parameters:
         -
             message: '#Call to an undefined method Filament\\Forms\\Components\\TextInput::currencyMask\(\)#'
             path: app/Filament/*
+        -
+            message: '#Call to an undefined method Filament\\Tables\\Columns\\TextColumn::currency\(\)#'
+            path: app/Filament/*

@@ -11,7 +11,7 @@ enum PaymentMethodEnum: int implements HasLabel
     case VA = 1;
     case EDC_MANDIRI = 2;
     case EDC_BCA = 3;
-    case CASH = 4;
+    // case CASH = 4;
 
     public function getLabel(): string
     {
@@ -19,7 +19,7 @@ enum PaymentMethodEnum: int implements HasLabel
             self::VA => 'Virtual Account',
             self::EDC_MANDIRI => 'EDC Mandiri',
             self::EDC_BCA => 'EDC BCA',
-            self::CASH => 'Tunai / Cash',
+            // self::CASH => 'Tunai / Cash',
         };
     }
 }

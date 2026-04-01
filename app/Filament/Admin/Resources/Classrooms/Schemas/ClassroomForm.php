@@ -22,6 +22,7 @@ class ClassroomForm
         return $schema
             ->components([
                 Section::make()
+                    ->columns(2)
                     ->schema([
                         Select::make('school_id')
                             ->relationship('school', 'name')

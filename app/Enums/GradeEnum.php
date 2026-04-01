@@ -66,4 +66,9 @@ enum GradeEnum: int implements HasLabel
             default => [],
         };
     }
+
+    public static function finalYears(): array
+    {
+        return [self::KINDERGARTEN_B, self::GRADE_6, self::GRADE_9, self::GRADE_12];
+    }
 }

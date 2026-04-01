@@ -6,6 +6,8 @@ namespace App\Models;
 
 use App\Enums\GradeEnum;
 use App\Models\Traits\BelongsToSchool;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,19 +24,20 @@ use Illuminate\Database\Eloquent\Model;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read School $school
  *
+ * @method static Builder<static>|Classroom excludeFinalYears()
  * @method static \Database\Factories\ClassroomFactory factory($count = null, $state = [])
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Classroom newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Classroom newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Classroom query()
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Classroom whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Classroom whereGrade($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Classroom whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Classroom whereIsMovingClass($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Classroom whereLegacyOldId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Classroom whereName($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Classroom wherePhase($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Classroom whereSchoolId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Classroom whereUpdatedAt($value)
+ * @method static Builder<static>|Classroom newModelQuery()
+ * @method static Builder<static>|Classroom newQuery()
+ * @method static Builder<static>|Classroom query()
+ * @method static Builder<static>|Classroom whereCreatedAt($value)
+ * @method static Builder<static>|Classroom whereGrade($value)
+ * @method static Builder<static>|Classroom whereId($value)
+ * @method static Builder<static>|Classroom whereIsMovingClass($value)
+ * @method static Builder<static>|Classroom whereLegacyOldId($value)
+ * @method static Builder<static>|Classroom whereName($value)
+ * @method static Builder<static>|Classroom wherePhase($value)
+ * @method static Builder<static>|Classroom whereSchoolId($value)
+ * @method static Builder<static>|Classroom whereUpdatedAt($value)
  *
  * @mixin \Eloquent
  */
@@ -55,5 +58,11 @@ class Classroom extends Model
             'grade' => GradeEnum::class,
             'is_moving_class' => 'boolean',
         ];
+    }
+
+    #[Scope]
+    protected function excludeFinalYears(Builder $query): Builder
+    {
+        return $query->whereNotIn('grade', GradeEnum::finalYears());
     }
 }

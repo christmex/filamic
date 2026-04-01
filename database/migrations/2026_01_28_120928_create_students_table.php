@@ -18,9 +18,12 @@ return new class extends Migration
             $table->foreignUlid('school_id')->nullable()->constrained();
             $table->foreignUlid('classroom_id')->nullable()->constrained();
             $table->foreignUlid('user_id')->nullable()->constrained();
-            // $table->foreignUlid('father_id')->nullable()->constrained('users');
-            // $table->foreignUlid('mother_id')->nullable()->constrained('users');
-            // $table->foreignUlid('guardian_id')->nullable()->constrained('users');
+
+            $table->string('monthly_fee_virtual_account')->nullable()->unique();
+            $table->string('book_fee_virtual_account')->nullable()->unique();
+            $table->unsignedInteger('monthly_fee_amount')->default(0);
+            $table->unsignedInteger('book_fee_amount')->default(0);
+
             $table->string('nisn')->unique()->nullable();
             $table->string('nis')->nullable()->index();
             $table->unsignedTinyInteger('gender');

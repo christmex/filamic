@@ -1,6 +1,8 @@
 # Backlog
 
+- [ ] instead of migrasi data di terminal, buat versi GUI aja, spya bsa lhat apa yg terjadi, migrasi perkelas, dll, pkoknya spya bsa lht data" bermasalah sblm migration
 - [ ] pikirkan kembali proses kenaikan kelas, proses perpindahan tahun ajaran dan semester
+- [ ] buat jadi ction baru untuk toggle expand table
 
 ## SupplyHub Follow-ups
 

@@ -16,9 +16,7 @@ class PrintMonthlyFeeInvoice
     {
         $invoicesIds = data_get($data, 'invoice_ids');
 
-        if (
-            blank($invoicesIds)
-        ) {
+        if (blank($invoicesIds)) {
             return null;
         }
 
