@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6e016424132d155fd685543f51e20e5e",
+    "content-hash": "4a77a175b1ff2b43b5092d2a692518e9",
     "packages": [
         {
             "name": "akaunting/laravel-money",
@@ -672,6 +672,87 @@
                 }
             ],
             "time": "2026-03-20T21:10:52+00:00"
+        },
+        {
+            "name": "christmex/filament-toggle-table-group-action",
+            "version": "v1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/christmex/filament-toggle-table-group-action.git",
+                "reference": "c1f44a32266afa5f03de237ef778f32aa51b4f4c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/christmex/filament-toggle-table-group-action/zipball/c1f44a32266afa5f03de237ef778f32aa51b4f4c",
+                "reference": "c1f44a32266afa5f03de237ef778f32aa51b4f4c",
+                "shasum": ""
+            },
+            "require": {
+                "filament/tables": "^5.0",
+                "php": "^8.2",
+                "spatie/laravel-package-tools": "^1.15.0"
+            },
+            "require-dev": {
+                "larastan/larastan": "^3.0",
+                "laravel/pint": "^1.0",
+                "nunomaduro/collision": "^8.0",
+                "orchestra/testbench": "^9.0|^10.0",
+                "pestphp/pest": "^3.7|^4.0",
+                "pestphp/pest-plugin-arch": "^3.0|^4.0",
+                "pestphp/pest-plugin-laravel": "^3.0|^4.0",
+                "pestphp/pest-plugin-livewire": "^3.0|^4.0",
+                "rector/rector": "^2.0",
+                "spatie/laravel-ray": "^1.26"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "FilamentToggleTableGroupAction": "Christmex\\FilamentToggleTableGroupAction\\Facades\\FilamentToggleTableGroupAction"
+                    },
+                    "providers": [
+                        "Christmex\\FilamentToggleTableGroupAction\\FilamentToggleTableGroupActionServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Christmex\\FilamentToggleTableGroupAction\\": "src/",
+                    "Christmex\\FilamentToggleTableGroupAction\\Database\\Factories\\": "database/factories/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "christmex",
+                    "email": "christmex@yahoo.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "This is my package filament-toggle-table-group-action",
+            "homepage": "https://github.com/christmex/filament-toggle-table-group-action",
+            "keywords": [
+                "christmex",
+                "filament",
+                "filament-plugin",
+                "filament-toggle-table-group-action",
+                "filamentphp",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/christmex/filament-toggle-table-group-action/issues",
+                "source": "https://github.com/christmex/filament-toggle-table-group-action"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/christmex",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-04-01T19:08:43+00:00"
         },
         {
             "name": "danharrin/date-format-converter",

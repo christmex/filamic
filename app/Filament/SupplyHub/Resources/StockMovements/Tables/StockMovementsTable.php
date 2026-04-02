@@ -6,6 +6,7 @@ namespace App\Filament\SupplyHub\Resources\StockMovements\Tables;
 
 use App\Enums\StockMovementTypeEnum;
 use App\Models\ProductStockMovement;
+use Christmex\FilamentToggleTableGroupAction\Actions\ToggleTableGroupAction;
 use Filament\Actions\Action;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -36,18 +37,19 @@ class StockMovementsTable
             ])
             ->defaultSort('transaction_date', 'desc')
             ->toolbarActions([
-                Action::make('expand_all')
-                    ->label('Toggle Detail Variasi Produk')
-                    ->icon(Heroicon::ArrowsPointingOut)
-                    ->color('gray')
-                    ->alpineClickHandler("
-                        const collapsed = document.querySelectorAll('.fi-ta-group-header.fi-collapsed');
-                        if (collapsed.length > 0) {
-                            collapsed.forEach(el => el.click());
-                        } else {
-                            document.querySelectorAll('.fi-ta-group-header:not(.fi-collapsed)').forEach(el => el.click());
-                        }
-                    "),
+                // Action::make('expand_all')
+                //     ->label('Toggle Detail Variasi Produk')
+                //     ->icon(Heroicon::ArrowsPointingOut)
+                //     ->color('gray')
+                //     ->alpineClickHandler("
+                //         const collapsed = document.querySelectorAll('.fi-ta-group-header.fi-collapsed');
+                //         if (collapsed.length > 0) {
+                //             collapsed.forEach(el => el.click());
+                //         } else {
+                //             document.querySelectorAll('.fi-ta-group-header:not(.fi-collapsed)').forEach(el => el.click());
+                //         }
+                //     "),
+                ToggleTableGroupAction::make()
             ])
             ->columns([
                 TextColumn::make('item.product.name')

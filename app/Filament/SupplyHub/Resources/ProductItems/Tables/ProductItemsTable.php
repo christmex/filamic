@@ -12,6 +12,7 @@ use App\Models\Branch;
 use App\Models\ProductCategory;
 use App\Models\ProductItem;
 use App\Models\Supplier;
+use Christmex\FilamentToggleTableGroupAction\Actions\ToggleTableGroupAction;
 use Filament\Actions\Action;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ColumnGroup;
@@ -62,18 +63,20 @@ class ProductItemsTable
                     ->color(fn ($livewire) => $livewire->priceEditable ? 'success' : 'gray')
                     ->action(fn ($livewire) => $livewire->priceEditable = ! $livewire->priceEditable),
 
-                Action::make('expand_all')
+                // Action::make('expand_all')
+                //     ->label('Toggle Detail Variasi Produk')
+                //     ->icon(Heroicon::ArrowsPointingOut)
+                //     ->color('gray')
+                //     ->alpineClickHandler("
+                //         const collapsed = document.querySelectorAll('.fi-ta-group-header.fi-collapsed');
+                //         if (collapsed.length > 0) {
+                //             collapsed.forEach(el => el.click());
+                //         } else {
+                //             document.querySelectorAll('.fi-ta-group-header:not(.fi-collapsed)').forEach(el => el.click());
+                //         }
+                //     "),
+                ToggleTableGroupAction::make()
                     ->label('Toggle Detail Variasi Produk')
-                    ->icon(Heroicon::ArrowsPointingOut)
-                    ->color('gray')
-                    ->alpineClickHandler("
-                        const collapsed = document.querySelectorAll('.fi-ta-group-header.fi-collapsed');
-                        if (collapsed.length > 0) {
-                            collapsed.forEach(el => el.click());
-                        } else {
-                            document.querySelectorAll('.fi-ta-group-header:not(.fi-collapsed)').forEach(el => el.click());
-                        }
-                    "),
             ])
             ->columns([
                 ColumnGroup::make('Informasi Produk', [

@@ -13,6 +13,7 @@ use App\Models\Invoice;
 use App\Models\SchoolYear;
 use App\Models\Student;
 use BackedEnum;
+use Christmex\FilamentToggleTableGroupAction\Actions\ToggleTableGroupAction;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
@@ -54,18 +55,19 @@ class InvoiceResource extends Resource
             ->collapsedGroupsByDefault()
             ->recordUrl(null)
             ->toolbarActions([
-                Action::make('expand_all')
-                    ->label('Toggle Detail Tagihan')
-                    ->icon(Heroicon::ArrowsPointingOut)
-                    ->color('gray')
-                    ->alpineClickHandler("
-                        const collapsed = document.querySelectorAll('.fi-ta-group-header.fi-collapsed');
-                        if (collapsed.length > 0) {
-                            collapsed.forEach(el => el.click());
-                        } else {
-                            document.querySelectorAll('.fi-ta-group-header:not(.fi-collapsed)').forEach(el => el.click());
-                        }
-                    "),
+                // Action::make('expand_all')
+                //     ->label('Toggle Detail Tagihan')
+                //     ->icon(Heroicon::ArrowsPointingOut)
+                //     ->color('gray')
+                //     ->alpineClickHandler("
+                //         const collapsed = document.querySelectorAll('.fi-ta-group-header.fi-collapsed');
+                //         if (collapsed.length > 0) {
+                //             collapsed.forEach(el => el.click());
+                //         } else {
+                //             document.querySelectorAll('.fi-ta-group-header:not(.fi-collapsed)').forEach(el => el.click());
+                //         }
+                //     "),
+                ToggleTableGroupAction::make()
             ])
             ->columns([
                 TextColumn::make('student_name')

@@ -9,6 +9,7 @@
         "php": "^8.2",
         "ariaieboy/filament-currency": "^3.0",
         "barryvdh/laravel-dompdf": "^3.1",
+        "christmex/filament-toggle-table-group-action": "*",
         "dedoc/scramble": "^0.13.10",
         "filament/filament": "^5.0",
         "laravel/framework": "^12.0",
