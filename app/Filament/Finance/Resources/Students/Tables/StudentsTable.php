@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Finance\Resources\Students\Tables;
 
+use App\Actions\PayBookFeeInvoice;
 use App\Actions\PayMonthlyFeeInvoice;
 use App\Actions\PrintMonthlyFeeInvoice;
 use App\Enums\MonthEnum;
@@ -48,7 +49,7 @@ class StudentsTable
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
-                $query->with(['currentPaymentAccount', 'unpaidMonthlyFee', 'paidMonthlyFee', 'unpaidInvoices']);
+                $query->with(['currentPaymentAccount', 'unpaidMonthlyFee', 'paidMonthlyFee', 'unpaidInvoices','unpaidBookFee']);
             })
             ->paginationMode(PaginationMode::Simple)
             ->contentGrid([
@@ -136,8 +137,6 @@ class StudentsTable
                             TextInput::make('total_invoice')
                                 ->label('Total Tagihan')
                                 ->disabled()
-                                ->mask(RawJs::make('$money($input)'))
-                                ->stripCharacters(',')
                                 ->prefix('Rp'),
                             DateTimePicker::make('paid_at')
                                 ->required()
@@ -227,7 +226,103 @@ class StudentsTable
                                 }
 
                                 Notification::make()
-                                    ->title('Berhasil membayar tagihan!')
+                                    ->title('Berhasil membayar tagihan sekolah!')
+                                    ->success()
+                                    ->send();
+
+                            } catch (Throwable $error) {
+                                report($error);
+
+                                Notification::make()
+                                    ->title('Gagal membayar tagihan!')
+                                    ->body('Terjadi Kesalahan Sistem. Silakan hubungi tim IT.')
+                                    ->danger()
+                                    ->persistent()
+                                    ->send();
+
+                                return;
+                            }
+                        }),
+
+                    Action::make('payBookFeeAction')
+                        ->label('Uang Buku')
+                        ->visible(fn (Student $record) => $record->unpaidBookFee->isNotEmpty())
+                        ->modalHeading('Bayar Tagihan Uang Buku')
+                        ->schema([
+                            TextInput::make('total_invoice')
+                                ->label('Total Tagihan')
+                                ->disabled()
+                                ->prefix('Rp'),
+                            DateTimePicker::make('paid_at')
+                                ->required()
+                                ->maxDate(fn () => now())
+                                ->label('Tanggal Bayar')
+                                ->hint('Tanggal Sesuai Rekening Koran/Tanggal Saat Bayar')
+                                ->default(fn () => now()),
+                            CheckboxList::make('invoice_ids')
+                                ->label('Tagihan')
+                                ->required()
+                                ->bulkToggleable()
+                                ->options(function (Student $record) {
+                                    // TODO: extract this to method and cache since it also used in the description
+                                    /** @var Builder|Invoice $query */
+                                    // @phpstan-ignore-next-line
+                                    $query = $record->invoices();
+
+                                    return $query
+                                        ->unpaidBookFee()
+                                        ->orderBy('due_date')
+                                        ->get()
+                                        ->mapWithKeys(fn (Invoice $invoice) => [
+                                            $invoice->getKey() => $invoice->school_year_name,
+                                        ]);
+                                })
+                                ->columns(3)
+                                ->descriptions(function (Student $record) {
+                                    /** @var Builder|Invoice $query */
+                                    // @phpstan-ignore-next-line
+                                    $query = $record->invoices();
+
+                                    return $query
+                                        ->unpaidBookFee()
+                                        ->orderBy('due_date')
+                                        ->get()
+                                        ->pluck('formatted_amount', 'id');
+                                })
+                                ->gridDirection('row')
+                                ->live()
+                                ->afterStateUpdated(function (Set $set, ?array $state, Student $record) {
+                                    $totalAmount = $record->invoices()
+                                        ->whereIn('id', $state ?? [])
+                                        ->sum('amount');
+
+                                    $totalAmount = Number::format((int) $totalAmount, locale: config('app.locale'));
+
+                                    $set('total_invoice', $totalAmount);
+                                }),
+                            Select::make('payment_method')
+                                ->label('Metode Pembayaran')
+                                ->required()
+                                ->options(PaymentMethodEnum::class),
+                            Textarea::make('description')
+                                ->label('Keterangan')
+                                ->hint('Deskripsi Ini Akan Di Buat Untuk Semua Tagihan Yang Terpilih.'),
+                        ])
+                        ->action(function (Student $record, array $data) {
+                            try {
+                                $payBookFeeInvoice = PayBookFeeInvoice::run($record, $data);
+
+                                if ($payBookFeeInvoice === false) {
+                                    Notification::make()
+                                        ->title('Tagihan tidak dibayarkan!')
+                                        ->info()
+                                        ->send();
+
+                                    return;
+                                }
+
+                                Notification::make()
+                                    ->title('Berhasil membayar tagihan buku!')
                                     ->success()
                                     ->send();
 

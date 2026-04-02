@@ -67,7 +67,7 @@ class InvoiceResource extends Resource
                 //             document.querySelectorAll('.fi-ta-group-header:not(.fi-collapsed)').forEach(el => el.click());
                 //         }
                 //     "),
-                ToggleTableGroupAction::make()
+                ToggleTableGroupAction::make(),
             ])
             ->columns([
                 TextColumn::make('student_name')

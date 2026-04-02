@@ -76,7 +76,7 @@ class ProductItemsTable
                 //         }
                 //     "),
                 ToggleTableGroupAction::make()
-                    ->label('Toggle Detail Variasi Produk')
+                    ->label('Toggle Detail Variasi Produk'),
             ])
             ->columns([
                 ColumnGroup::make('Informasi Produk', [

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Enums\InvoiceTypeEnum;
 use App\Models\Branch;
 use App\Models\Invoice;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -41,6 +42,7 @@ class PrintDailyInvoiceReport
             'branch' => $branch,
             'totalAmount' => $totalAmount,
             'totalFine' => $totalFine,
+            'isMonthlyInvoice' => $data['invoice_type'] === InvoiceTypeEnum::MONTHLY_FEE,
         ])->setPaper([0, 0, 609.449, 935.433], 'portrait');
 
         // Simpan ke disk 'public' agar bisa diakses via URL asset()

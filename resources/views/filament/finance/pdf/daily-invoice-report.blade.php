@@ -192,10 +192,12 @@
                     <th class="no">#</th>
                     <th class="desc">Nama</th>
                     <th class="unit">Kelas</th>
-                    <th class="qty">Bulan</th>
-                    <th class="qty">Metode Pembayaran</th>
+                    @if($isMonthlyInvoice)
+                        <th class="qty">Bulan</th>
+                        <th class="qty">Denda</th>
+                    @endif
                     <th class="qty">Nominal</th>
-                    <th class="qty">Denda</th>
+                    <th class="qty">Metode Pembayaran</th>
                 </tr>
             </thead>
             <tbody>
@@ -204,10 +206,12 @@
                         <td class="no">{{$loop->iteration}}</td>
                         <td class="desc">{{$invoice->student_name}}</td>
                         <td class="unit">{{$invoice->classroom_name}}</td>
-                        <td class="qty">{{$invoice->month->getLabel()}}</td>
-                        <td class="qty">{{$invoice->payment_method->getLabel()}}<br>({{$invoice->paid_at_app}})</td>
+                        @if($isMonthlyInvoice)
+                            <td class="qty">{{$invoice->month?->getLabel()}}</td>
+                            <td class="qty">{{ Number::currency($invoice->fine, 'IDR', 'id') }}</td>
+                        @endif
                         <td class="qty">{{ Number::currency($invoice->amount, 'IDR', 'id') }}</td>
-                        <td class="qty">{{ Number::currency($invoice->fine, 'IDR', 'id') }}</td>
+                        <td class="qty">{{$invoice->payment_method->getLabel()}}<br>({{$invoice->paid_at_app}})</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -231,10 +235,12 @@
                     <td>Total Pendapatan</td>
                     <td>{{ Number::currency($totalAmount, 'IDR', 'id') }}</td>
                 </tr>
-                <tr>
-                    <td>Total Denda</td>
-                    <td>{{ Number::currency($totalFine, 'IDR', 'id') }}</td>
-                </tr>
+                @if($isMonthlyInvoice)
+                    <tr>
+                        <td>Total Denda</td>
+                        <td>{{ Number::currency($totalFine, 'IDR', 'id') }}</td>
+                    </tr>
+                @endif
                 <tr>
                     <td>Total Keseluruhan</td>
                     <td>{{ Number::currency($totalFine + $totalAmount, 'IDR', 'id') }}</td>
