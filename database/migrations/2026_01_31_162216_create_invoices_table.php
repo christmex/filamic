@@ -32,6 +32,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('type');
             $table->unsignedTinyInteger('month')->nullable();
 
+            $table->string('virtual_account_number');
             $table->unsignedInteger('amount');
             $table->unsignedInteger('fine')->default(0);
             $table->unsignedInteger('discount')->default(0);
@@ -45,7 +46,7 @@ return new class extends Migration
             $table->dateTime('paid_at')->nullable();
             $table->dateTime('paid_at_app')->nullable();
 
-            $table->string('payment_reference')->nullable()->index(); // for group payment
+            $table->string('payment_group_reference')->nullable()->index(); // for group payment
 
             $table->text('description')->nullable();
 

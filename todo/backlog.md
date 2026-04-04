@@ -2,7 +2,9 @@
 
 - [ ] instead of migrasi data di terminal, buat versi GUI aja, spya bsa lhat apa yg terjadi, migrasi perkelas, dll, pkoknya spya bsa lht data" bermasalah sblm migration
 - [ ] pikirkan kembali proses kenaikan kelas, proses perpindahan tahun ajaran dan semester
-- [ ] buat jadi ction baru untuk toggle expand table
+- [x] buat jadi action baru untuk toggle expand table
+- [ ] add a missing data inside metadata, the key is warning and inside tht maybe a json/array the list of the problem/warnings
+- [ ] buat global scope auto apply untuk filter only active student
 
 ## SupplyHub Follow-ups
 

@@ -8,7 +8,6 @@ use App\Models\School;
 use App\Models\SchoolYear;
 use App\Models\Student;
 use App\Models\StudentEnrollment;
-use App\Models\StudentPaymentAccount;
 use Illuminate\Support\Carbon;
 
 test('it prevents mass assignment to guarded id', function () {
@@ -205,10 +204,6 @@ test('it deactivates students when academic period becomes inactive', function (
         'student_id' => $student->getKey(),
         'status' => StudentEnrollmentStatusEnum::ENROLLED,
     ]);
-    StudentPaymentAccount::factory()->create([
-        'student_id' => $student->getKey(),
-        'school_id' => $school->getKey(),
-    ]);
 
     // Act: Deactivate the school year
     $schoolYear->update(['is_active' => false]);
@@ -229,10 +224,6 @@ test('it syncs student active status when academic period becomes active', funct
         'school_year_id' => $schoolYear->getKey(),
         'student_id' => $student->getKey(),
         'status' => StudentEnrollmentStatusEnum::ENROLLED,
-    ]);
-    StudentPaymentAccount::factory()->create([
-        'student_id' => $student->getKey(),
-        'school_id' => $school->getKey(),
     ]);
 
     // Act: Activate the school year

@@ -61,7 +61,7 @@ class PayMonthlyFeeInvoice
                 ]);
             }
 
-            $paymentReference = Invoice::generatePaymentReference();
+            $paymentGroupReference = Invoice::generateGroupReference();
 
             foreach ($invoicesToPay as $index => $invoice) {
                 $isOldest = ($index === 0);
@@ -71,7 +71,7 @@ class PayMonthlyFeeInvoice
                     'paid_at' => $validated['paid_at'],
                     'paid_at_app' => now(),
                     'payment_method' => $validated['payment_method'],
-                    'payment_reference' => $paymentReference,
+                    'payment_group_reference' => $paymentGroupReference,
                     'description' => $validated['description'],
 
                     // Apply fine and discount only to the oldest invoice

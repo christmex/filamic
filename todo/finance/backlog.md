@@ -1,8 +1,8 @@
 - [x] buat tagihan spp bulanan untuk semua siswa
-- [ ] buat tagihan spp satuan untuk siswa tertentu
+- [x] buat tagihan spp satuan untuk siswa tertentu
     - [ ] buat test GenerateBulkMonthlyFeeInvoice
     - [ ] buat test MonthlyFeeInvoicesRelationManager
-- [ ] buat tagihan uang buku untuk tahun ajaran depan
+- [x] buat tagihan uang buku untuk tahun ajaran depan
     - jika dia sudah berada di kelas 6 SD/3 SMP/3 SMA maka tidak bisa membuat tagihan uang buku.
     - [ ] buat test scope excludeFinalYears di Classroom
     - [ ] buat test scope notInFinalYears di Student
@@ -12,14 +12,14 @@
     - [ ] buat test scope bookFeeForNextSchoolYear di Invoice
     - [ ] buat test GenerateBookFeeInvoice
 - [x] bayar tagihan uang spp
-- [ ] bayar tagihan uang buku
+- [x] bayar tagihan uang buku
 - [ ] import data pembayaran uang spp
 - [ ] import data pembayaran uang buku
 - [ ] export data pembayaran uang spp untuk di upload di Bank
 - [ ] export data pembayaran uang buku untuk di upload di Bank
 - [x] print bukti pembayaran uang spp
-- [ ] print laporan uang spp
-- [ ] print laporan uang buku
+- [x] print laporan uang spp
+- [x] print laporan uang buku
 - [ ] filter yang punya tagihan saja
 - [ ] kita udh pakai laravel action, di migrate data, pakai aja juga action itu klo diperlukan
 - [ ] delete all student payment account and all related
@@ -27,6 +27,7 @@
 - [ ] add widget di dasboard finance
 - [ ] buat fitur ulangi pembayaran
 - [ ] create test for invoice in finance
+- [ ] buat funtion di model invoice buat menangai pembayaran, jadi nnti tinggal panggil gini $invoice->payMonthlyFee() and $invoice->payBookFee() biar satu tempat aja
 
 - [ ] kenaikan kelas
 - [ ] cek apakah fungsi relasi belongstoclassroom bentrok / duplikat dengan currentClassroom di model student
@@ -34,11 +35,11 @@
 
 ```php
 ->whereHas('currentEnrollment')
-            ->whereHas('currentPaymentAccount', function ($query) {
-                /** @var StudentPaymentAccount $query */
-                // @phpstan-ignore-next-line
-                $query->eligibleForBookFee();
-            })
+->whereHas('currentPaymentAccount', function ($query) {
+    /** @var StudentPaymentAccount $query */
+    // @phpstan-ignore-next-line
+    $query->eligibleForBookFee();
+})
 ```
 
 coba deh lihat di GenerateInvoice action pada cek itu, harus dipikirkan lagi itu

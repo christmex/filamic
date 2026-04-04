@@ -11,7 +11,6 @@ use App\Models\Invoice;
 use App\Models\SchoolYear;
 use App\Models\Student;
 use App\Models\StudentEnrollment;
-use App\Models\StudentPaymentAccount;
 use Illuminate\Validation\ValidationException;
 
 beforeEach(function () {
@@ -43,12 +42,7 @@ function createEligibleStudent(object $testContext): Student
         'school_year_id' => $testContext->schoolYear->getKey(),
     ]);
 
-    StudentPaymentAccount::factory()->create([
-        'student_id' => $student->getKey(),
-        'school_id' => $testContext->classroom->school_id,
-    ]);
-
-    return $student;
+    return $student->refresh();
 }
 
 // Validation
@@ -109,14 +103,12 @@ test('generates invoices for multiple eligible students', function () {
 test('invoice amount matches payment account monthly fee', function () {
     $student = createEligibleStudent($this);
 
-    $paymentAccount = $student->currentPaymentAccount;
-
     GenerateMonthlyFeeInvoice::run($this->branch, $this->validData);
 
     $invoice = Invoice::where('student_id', $student->getKey())->first();
 
-    expect($invoice->amount)->toBe($paymentAccount->monthly_fee_amount)
-        ->and($invoice->total_amount)->toBe($paymentAccount->monthly_fee_amount);
+    expect($invoice->amount)->toBe($student->monthly_fee_amount)
+        ->and($invoice->total_amount)->toBe($student->monthly_fee_amount);
 });
 
 // Edge cases — students that should be skipped
@@ -129,22 +121,8 @@ test('returns zero when no eligible students exist', function () {
 });
 
 test('skips inactive students', function () {
-    $student = Student::factory()->inactive()->create([
-        'branch_id' => $this->branch->getKey(),
-        'school_id' => $this->classroom->school_id,
-        'classroom_id' => $this->classroom->getKey(),
-    ]);
-
-    StudentEnrollment::factory()->active()->create([
-        'student_id' => $student->getKey(),
-        'classroom_id' => $this->classroom->getKey(),
-        'school_year_id' => $this->schoolYear->getKey(),
-    ]);
-
-    StudentPaymentAccount::factory()->create([
-        'student_id' => $student->getKey(),
-        'school_id' => $this->classroom->school_id,
-    ]);
+    $student = createEligibleStudent($this);
+    $student->updateQuietly(['is_active' => false]);
 
     $count = GenerateMonthlyFeeInvoice::run($this->branch, $this->validData);
 
@@ -157,11 +135,7 @@ test('skips students without current enrollment', function () {
         'school_id' => $this->classroom->school_id,
         'classroom_id' => $this->classroom->getKey(),
     ]);
-
-    StudentPaymentAccount::factory()->create([
-        'student_id' => $student->getKey(),
-        'school_id' => $this->classroom->school_id,
-    ]);
+    $student->updateQuietly(['is_active' => true]);
 
     $count = GenerateMonthlyFeeInvoice::run($this->branch, $this->validData);
 
@@ -169,7 +143,7 @@ test('skips students without current enrollment', function () {
 });
 
 test('skips students without payment account', function () {
-    $student = Student::factory()->active()->create([
+    $student = Student::factory()->withoutMonthlyFee()->create([
         'branch_id' => $this->branch->getKey(),
         'school_id' => $this->classroom->school_id,
         'classroom_id' => $this->classroom->getKey(),
@@ -180,6 +154,8 @@ test('skips students without payment account', function () {
         'classroom_id' => $this->classroom->getKey(),
         'school_year_id' => $this->schoolYear->getKey(),
     ]);
+
+    $student->updateQuietly(['is_active' => true]);
 
     $count = GenerateMonthlyFeeInvoice::run($this->branch, $this->validData);
 
@@ -187,10 +163,12 @@ test('skips students without payment account', function () {
 });
 
 test('skips students with ineligible payment account (no VA)', function () {
-    $student = Student::factory()->active()->create([
+    $student = Student::factory()->create([
         'branch_id' => $this->branch->getKey(),
         'school_id' => $this->classroom->school_id,
         'classroom_id' => $this->classroom->getKey(),
+        'monthly_fee_virtual_account' => null,
+        'monthly_fee_amount' => 250_000,
     ]);
 
     StudentEnrollment::factory()->active()->create([
@@ -198,11 +176,7 @@ test('skips students with ineligible payment account (no VA)', function () {
         'classroom_id' => $this->classroom->getKey(),
         'school_year_id' => $this->schoolYear->getKey(),
     ]);
-
-    StudentPaymentAccount::factory()->withoutMonthlyFee()->create([
-        'student_id' => $student->getKey(),
-        'school_id' => $this->classroom->school_id,
-    ]);
+    $student->updateQuietly(['is_active' => true]);
 
     $count = GenerateMonthlyFeeInvoice::run($this->branch, $this->validData);
 
@@ -260,11 +234,6 @@ test('skips students from a different branch', function () {
         'school_year_id' => $this->schoolYear->getKey(),
     ]);
 
-    StudentPaymentAccount::factory()->create([
-        'student_id' => $student->getKey(),
-        'school_id' => $otherSchool->getKey(),
-    ]);
-
     $count = GenerateMonthlyFeeInvoice::run($this->branch, $this->validData);
 
     expect($count)->toBe(0);
@@ -287,13 +256,10 @@ test('only generates for eligible students in a mixed group', function () {
         'school_id' => $this->classroom->school_id,
         'classroom_id' => $this->classroom->getKey(),
     ]);
-    StudentPaymentAccount::factory()->create([
-        'student_id' => $noEnrollment->getKey(),
-        'school_id' => $this->classroom->school_id,
-    ]);
+    $noEnrollment->updateQuietly(['is_active' => true]);
 
     // Active with enrollment but no payment account
-    $noPayment = Student::factory()->active()->create([
+    $noPayment = Student::factory()->withoutMonthlyFee()->create([
         'branch_id' => $this->branch->getKey(),
         'school_id' => $this->classroom->school_id,
         'classroom_id' => $this->classroom->getKey(),
@@ -303,6 +269,7 @@ test('only generates for eligible students in a mixed group', function () {
         'classroom_id' => $this->classroom->getKey(),
         'school_year_id' => $this->schoolYear->getKey(),
     ]);
+    $noPayment->updateQuietly(['is_active' => true]);
 
     $count = GenerateMonthlyFeeInvoice::run($this->branch, $this->validData);
 

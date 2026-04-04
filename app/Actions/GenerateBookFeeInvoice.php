@@ -37,9 +37,7 @@ class GenerateBookFeeInvoice
             ->active()
             ->notInFinalYears()
             ->whereHas('currentEnrollment')
-            ->whereHas('currentPaymentAccount', function ($query) {
-                $query->where('book_fee_amount', '>', 0);
-            })
+            ->where('book_fee_amount', '>', 0)
             ->whereDoesntHave('invoices', function ($query) {
                 /** @var Invoice $query */
                 // @phpstan-ignore-next-line
@@ -47,7 +45,6 @@ class GenerateBookFeeInvoice
             })
             ->with([
                 'school',
-                'currentPaymentAccount',
                 'currentEnrollment.classroom',
                 'currentEnrollment.schoolYear',
             ])
@@ -59,7 +56,6 @@ class GenerateBookFeeInvoice
 
         $newInvoices = $students->map(function (Student $student) use ($issuedAt, $dueDate, $increaseBookCost, $branch) {
             $enrollment = $student->currentEnrollment;
-            $paymentAccount = $student->currentPaymentAccount;
 
             $prepareFingerprint = [
                 'type' => InvoiceTypeEnum::BOOK_FEE->value,
@@ -67,7 +63,7 @@ class GenerateBookFeeInvoice
                 'school_year_id' => $enrollment->school_year_id,
             ];
 
-            $amount = $paymentAccount->book_fee_amount + $increaseBookCost;
+            $amount = $student->book_fee_amount + $increaseBookCost;
 
             $preparedData = [
                 'fingerprint' => Invoice::generateFingerprint($prepareFingerprint),
@@ -87,8 +83,9 @@ class GenerateBookFeeInvoice
 
                 'type' => InvoiceTypeEnum::BOOK_FEE,
 
-                'amount' => $amount + $paymentAccount->book_fee_amount,
-                'total_amount' => $amount + $paymentAccount->book_fee_amount,
+                'virtual_account_number' => $student->book_fee_virtual_account,
+                'amount' => $amount,
+                'total_amount' => $amount,
 
                 'due_date' => $dueDate,
                 'issued_at' => $issuedAt,

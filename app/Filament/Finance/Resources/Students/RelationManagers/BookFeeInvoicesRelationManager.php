@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Finance\Resources\Students\RelationManagers;
 
 use App\Enums\InvoiceStatusEnum;
+use App\Filament\Finance\Actions\RepeatPaymentAction;
 use App\Models\Invoice;
 use App\Models\SchoolYear;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -44,6 +45,9 @@ class BookFeeInvoicesRelationManager extends RelationManager
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('payment_method'),
+            ])
+            ->recordActions([
+                RepeatPaymentAction::make(),
             ])
             ->filters([
                 // SelectFilter::make('school_year_id')

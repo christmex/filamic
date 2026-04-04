@@ -10,7 +10,6 @@ use App\Models\SchoolTerm;
 use App\Models\SchoolYear;
 use App\Models\Student;
 use App\Models\StudentEnrollment;
-use App\Models\StudentPaymentAccount;
 
 test('it prevents mass assignment to guarded id', function () {
     // ARRANGE
@@ -158,10 +157,6 @@ test('it keeps students active when school term becomes inactive but school year
         'student_id' => $student->getKey(),
         'status' => StudentEnrollmentStatusEnum::ENROLLED,
     ]);
-    StudentPaymentAccount::factory()->create([
-        'student_id' => $student->getKey(),
-        'school_id' => $school->getKey(),
-    ]);
 
     // Act: Deactivate the school term (school year still active)
     $schoolTerm->update(['is_active' => false]);
@@ -183,10 +178,6 @@ test('it syncs student active status when academic period becomes active', funct
         'school_year_id' => $schoolYear->getKey(),
         'student_id' => $student->getKey(),
         'status' => StudentEnrollmentStatusEnum::ENROLLED,
-    ]);
-    StudentPaymentAccount::factory()->create([
-        'student_id' => $student->getKey(),
-        'school_id' => $school->getKey(),
     ]);
 
     // Act: Activate the school term

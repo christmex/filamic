@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Models\StudentEnrollment;
-use App\Models\StudentPaymentAccount;
-use App\Observers\StudentSyncActiveObserver;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\ViewAction;
@@ -31,9 +28,6 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        StudentEnrollment::observe(StudentSyncActiveObserver::class);
-        StudentPaymentAccount::observe(StudentSyncActiveObserver::class);
-
         Filament::serving(function () {
             Filament::getCurrentPanel()
                 ->maxContentWidth(Width::Full)

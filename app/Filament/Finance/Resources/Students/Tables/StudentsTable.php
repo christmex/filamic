@@ -49,7 +49,7 @@ class StudentsTable
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
-                $query->with(['currentPaymentAccount', 'unpaidMonthlyFee', 'paidMonthlyFee', 'unpaidInvoices','unpaidBookFee']);
+                $query->with(['unpaidMonthlyFee', 'paidMonthlyFee', 'unpaidInvoices', 'unpaidBookFee']);
             })
             ->paginationMode(PaginationMode::Simple)
             ->contentGrid([
@@ -67,14 +67,10 @@ class StudentsTable
                             ->label('Nama')
                             ->searchable()
                             ->sortable(),
-                        TextColumn::make('currentPaymentAccount')
+                        TextColumn::make('payment_account')
                             ->label('Nomor Virtual Account')
-                            ->searchable(query: function (Builder $query, string $search): Builder {
-                                return $query->whereHas('currentPaymentAccount', function ($query) use ($search) {
-                                    $query->where('monthly_fee_virtual_account', 'like', "%{$search}%")
-                                        ->orWhere('book_fee_virtual_account', 'like', "%{$search}%");
-                                });
-                            }),
+                            ->searchable(query: fn (Builder $query, string $search): Builder => $query->where('monthly_fee_virtual_account', 'like', "%{$search}%")
+                                ->orWhere('book_fee_virtual_account', 'like', "%{$search}%")),
                     ]),
             ])
             ->filters([

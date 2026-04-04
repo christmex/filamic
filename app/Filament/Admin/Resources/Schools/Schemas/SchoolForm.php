@@ -36,7 +36,7 @@ class SchoolForm
                                     ->inline()
                                     ->required()
                                     ->columnSpanFull(),
-                            ]),
+                            ])->columns(2),
                         Tabs\Tab::make('Address & Location')
                             ->icon(Heroicon::OutlinedMapPin)
                             ->schema([

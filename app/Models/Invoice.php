@@ -43,6 +43,7 @@ use InvalidArgumentException;
  * @property string $student_name
  * @property InvoiceTypeEnum $type
  * @property MonthEnum|null $month
+ * @property string $virtual_account_number
  * @property int $amount
  * @property int $fine
  * @property int $discount
@@ -53,7 +54,7 @@ use InvalidArgumentException;
  * @property PaymentMethodEnum|null $payment_method
  * @property Carbon|null $paid_at
  * @property Carbon|null $paid_at_app
- * @property string|null $payment_reference
+ * @property string|null $payment_group_reference
  * @property string|null $description
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -101,8 +102,8 @@ use InvalidArgumentException;
  * @method static Builder<static>|Invoice whereMonth($value)
  * @method static Builder<static>|Invoice wherePaidAt($value)
  * @method static Builder<static>|Invoice wherePaidAtApp($value)
+ * @method static Builder<static>|Invoice wherePaymentGroupReference($value)
  * @method static Builder<static>|Invoice wherePaymentMethod($value)
- * @method static Builder<static>|Invoice wherePaymentReference($value)
  * @method static Builder<static>|Invoice whereReferenceNumber($value)
  * @method static Builder<static>|Invoice whereSchoolId($value)
  * @method static Builder<static>|Invoice whereSchoolName($value)
@@ -114,6 +115,7 @@ use InvalidArgumentException;
  * @method static Builder<static>|Invoice whereTotalAmount($value)
  * @method static Builder<static>|Invoice whereType($value)
  * @method static Builder<static>|Invoice whereUpdatedAt($value)
+ * @method static Builder<static>|Invoice whereVirtualAccountNumber($value)
  *
  * @mixin \Eloquent
  */
@@ -338,7 +340,7 @@ class Invoice extends Model
         );
     }
 
-    public static function generatePaymentReference(): string
+    public static function generateGroupReference(): string
     {
         return sprintf('PAY/%s/%s',
             now()->format('Ymd'),
@@ -370,5 +372,18 @@ class Invoice extends Model
         $daysLate = $dueDate->diffInDays($today);
 
         return (int) ($daysLate * $ratePerDay);
+    }
+
+    public function repeatPayment()
+    {
+        // TODO: cek apakah ada payment groupnya perlu di handle atau tidak
+        $this->update([
+            'status' => InvoiceStatusEnum::UNPAID,
+            'paid_at' => null,
+            'paid_at_app' => null,
+            'payment_method' => null,
+            'payment_reference' => null,
+            'description' => null,
+        ]);
     }
 }

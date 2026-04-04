@@ -12,7 +12,6 @@ use App\Models\School;
 use App\Models\SchoolYear;
 use App\Models\Student;
 use App\Models\StudentEnrollment;
-use App\Models\StudentPaymentAccount;
 
 it('casts the columns')
     ->expect(fn () => Student::factory()->create())
@@ -20,11 +19,15 @@ it('casts the columns')
     ->status_in_family->toBeInstanceOf(StatusInFamilyEnum::class)
     ->religion->toBeInstanceOf(ReligionEnum::class);
 
-it('syncActiveStatus activates student when active enrollment and payment account exist', function () {
+it('syncActiveStatus activates student when active enrollment and monthly fee data exist', function () {
     // Arrange
     $activeYear = SchoolYear::factory()->active()->create();
     $school = School::factory()->create();
-    $student = Student::factory()->for($school)->create(['is_active' => false]);
+    $student = Student::factory()->for($school)->create([
+        'is_active' => false,
+        'monthly_fee_virtual_account' => '12345678',
+        'monthly_fee_amount' => 250_000,
+    ]);
     $classroom = Classroom::factory()->for($school)->create();
 
     StudentEnrollment::factory()->create([
@@ -32,11 +35,6 @@ it('syncActiveStatus activates student when active enrollment and payment accoun
         'school_year_id' => $activeYear->getKey(),
         'student_id' => $student->getKey(),
         'status' => StudentEnrollmentStatusEnum::ENROLLED,
-    ]);
-
-    StudentPaymentAccount::factory()->create([
-        'student_id' => $student->getKey(),
-        'school_id' => $school->getKey(),
     ]);
 
     // Act
@@ -58,11 +56,11 @@ it('syncActiveStatus deactivates student when no active enrollment exists', func
     expect($student->refresh()->is_active)->toBeFalse();
 });
 
-it('syncActiveStatus deactivates student when enrollment exists but no payment account', function () {
+it('syncActiveStatus deactivates student when enrollment exists but no monthly fee data', function () {
     // Arrange
     $activeYear = SchoolYear::factory()->active()->create();
     $school = School::factory()->create();
-    $student = Student::factory()->for($school)->create(['is_active' => true]);
+    $student = Student::factory()->for($school)->withoutMonthlyFee()->create(['is_active' => true]);
     $classroom = Classroom::factory()->for($school)->create();
 
     StudentEnrollment::factory()->create([
@@ -72,7 +70,7 @@ it('syncActiveStatus deactivates student when enrollment exists but no payment a
         'status' => StudentEnrollmentStatusEnum::ENROLLED,
     ]);
 
-    // Act — no payment account
+    // Act — no monthly fee data
     $student->syncActiveStatus();
 
     // Assert
@@ -142,6 +140,7 @@ it('currentEnrollment returns only active enrollment', function () {
     ]);
 
     // Act
+    $student->refresh();
     $current = $student->currentEnrollment;
 
     // Assert

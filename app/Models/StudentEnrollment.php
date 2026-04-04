@@ -79,6 +79,13 @@ class StudentEnrollment extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saved(function (self $studentEnrollment): void {
+            $studentEnrollment->student->syncActiveStatus();
+        });
+    }
+
     #[Scope]
     protected function active(Builder $query): Builder
     {

@@ -67,7 +67,6 @@ use Illuminate\Support\Number;
  * @property-read Classroom|null $classroom
  * @property-read Classroom|null $currentClassroom
  * @property-read StudentEnrollment|null $currentEnrollment
- * @property-read StudentPaymentAccount|null $currentPaymentAccount
  * @property-read mixed $display_name
  * @property-read \Illuminate\Database\Eloquent\Collection<int, StudentEnrollment> $enrollments
  * @property-read int|null $enrollments_count
@@ -76,8 +75,6 @@ use Illuminate\Support\Number;
  * @property-read int|null $invoices_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Invoice> $paidMonthlyFee
  * @property-read int|null $paid_monthly_fee_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, StudentPaymentAccount> $paymentAccounts
- * @property-read int|null $payment_accounts_count
  * @property-read School|null $school
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Invoice> $unpaidBookFee
  * @property-read int|null $unpaid_book_fee_count
@@ -88,12 +85,15 @@ use Illuminate\Support\Number;
  * @property-read User|null $user
  *
  * @method static Builder<static>|Student active()
+ * @method static Builder<static>|Student eligibleForBookFee()
+ * @method static Builder<static>|Student eligibleForMonthlyFee()
  * @method static \Database\Factories\StudentFactory factory($count = null, $state = [])
  * @method static Builder<static>|Student hasNoProblems()
  * @method static Builder<static>|Student hasProblems()
  * @method static Builder<static>|Student inactive()
  * @method static Builder<static>|Student newModelQuery()
  * @method static Builder<static>|Student newQuery()
+ * @method static Builder<static>|Student notEligibleForMonthlyFee()
  * @method static Builder<static>|Student notInFinalYears()
  * @method static Builder<static>|Student query()
  * @method static Builder<static>|Student whereBirthDate($value)
@@ -165,17 +165,10 @@ class Student extends Model
         static::saving(function (self $student): void {
             // TODO: validate if the classroom_id belongsto school_id and the school_od belongsto branch_id
         });
-    }
 
-    public function paymentAccounts(): HasMany
-    {
-        return $this->hasMany(StudentPaymentAccount::class);
-    }
-
-    public function currentPaymentAccount(): HasOne
-    {
-        return $this->hasOne(StudentPaymentAccount::class)
-            ->latestOfMany();
+        static::saved(function (self $student): void {
+            $student->syncActiveStatus();
+        });
     }
 
     /**
@@ -238,15 +231,47 @@ class Student extends Model
     }
 
     #[Scope]
+    protected function eligibleForMonthlyFee(Builder $query): Builder
+    {
+        return $query
+            ->whereNotNull('monthly_fee_virtual_account')
+            ->where('monthly_fee_amount', '>', 0);
+    }
+
+    #[Scope]
+    protected function notEligibleForMonthlyFee(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q): void {
+            $q->whereNull($q->qualifyColumn('monthly_fee_virtual_account'))
+                ->orWhere($q->qualifyColumn('monthly_fee_amount'), '=', 0);
+        });
+    }
+
+    #[Scope]
+    protected function eligibleForBookFee(Builder $query): Builder
+    {
+        return $query
+            ->whereNotNull('book_fee_virtual_account')
+            ->where('book_fee_amount', '>', 0);
+    }
+
+    #[Scope]
     protected function hasProblems(Builder $query): Builder
     {
-        return $query->whereDoesntHave('currentEnrollment')->orWhereDoesntHave('currentPaymentAccount');
+        return $query->whereDoesntHave('currentEnrollment')
+            ->orWhere(function (Builder $q): void {
+                $q->whereNull('monthly_fee_virtual_account')
+                    ->orWhere('monthly_fee_amount', '=', 0);
+            });
     }
 
     #[Scope]
     protected function hasNoProblems(Builder $query): Builder
     {
-        return $query->whereHas('currentEnrollment')->whereHas('currentPaymentAccount');
+        return $query
+            ->whereHas('currentEnrollment')
+            ->whereNotNull('monthly_fee_virtual_account')
+            ->where('monthly_fee_amount', '>', 0);
     }
 
     protected function initials(): Attribute
@@ -288,9 +313,10 @@ class Student extends Model
 
     public function canBeDelete(): bool
     {
-        return $this->enrollments()->doesntExist() && $this->paymentAccounts()->doesntExist();
+        return $this->enrollments()->doesntExist();
     }
 
+    // TODO: please rework on this
     public function getMissingData(): Collection
     {
         $missing = collect();
@@ -300,7 +326,7 @@ class Student extends Model
             $missing->push('Peserta Didik Belum Memiliki Data Di Tahun Ajaran Aktif');
         }
 
-        if ($this->currentPaymentAccount()->doesntExist()) {
+        if (blank($this->monthly_fee_virtual_account) || $this->monthly_fee_amount <= 0) {
             $missing->push('Peserta Didik Belum Memiliki Data Untuk Pembayaran');
         }
 
@@ -332,11 +358,9 @@ class Student extends Model
     public function syncActiveStatus(): void
     {
         $enrollment = $this->currentEnrollment;
-        $hasPayment = $this->relationLoaded('paymentAccounts')
-            ? $this->paymentAccounts->isNotEmpty()
-            : $this->currentPaymentAccount()->exists();
+        $isReadyForPayment = filled($this->monthly_fee_virtual_account) && $this->monthly_fee_amount > 0;
 
-        $isActive = filled($enrollment) && $hasPayment;
+        $isActive = filled($enrollment) && $isReadyForPayment;
 
         $this->updateQuietly([
             'branch_id' => $enrollment->branch_id ?? $this->branch_id,

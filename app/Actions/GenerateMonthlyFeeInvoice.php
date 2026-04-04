@@ -8,7 +8,6 @@ use App\Enums\InvoiceTypeEnum;
 use App\Models\Branch;
 use App\Models\Invoice;
 use App\Models\Student;
-use App\Models\StudentPaymentAccount;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -37,11 +36,7 @@ class GenerateMonthlyFeeInvoice
         $students = $getStudentsQuery
             ->active()
             ->whereHas('currentEnrollment')
-            ->whereHas('currentPaymentAccount', function ($query) {
-                /** @var StudentPaymentAccount $query */
-                // @phpstan-ignore-next-line
-                $query->eligibleForMonthlyFee();
-            })
+            ->eligibleForMonthlyFee()
             ->whereDoesntHave('invoices', function ($query) use ($month) {
                 /** @var Invoice $query */
                 // @phpstan-ignore-next-line
@@ -49,7 +44,6 @@ class GenerateMonthlyFeeInvoice
             })
             ->with([
                 'school',
-                'currentPaymentAccount',
                 'currentEnrollment.classroom',
                 'currentEnrollment.schoolYear',
             ])
@@ -61,7 +55,6 @@ class GenerateMonthlyFeeInvoice
 
         $newInvoices = $students->map(function (Student $student) use ($month, $issuedAt, $dueDate, $branch) {
             $enrollment = $student->currentEnrollment;
-            $paymentAccount = $student->currentPaymentAccount;
 
             $prepareFingerprint = [
                 'type' => InvoiceTypeEnum::MONTHLY_FEE->value,
@@ -89,8 +82,9 @@ class GenerateMonthlyFeeInvoice
                 'type' => InvoiceTypeEnum::MONTHLY_FEE,
                 'month' => $month,
 
-                'amount' => $paymentAccount->monthly_fee_amount,
-                'total_amount' => $paymentAccount->monthly_fee_amount,
+                'virtual_account_number' => $student->monthly_fee_virtual_account,
+                'amount' => $student->monthly_fee_amount,
+                'total_amount' => $student->monthly_fee_amount,
 
                 'due_date' => $dueDate,
                 'issued_at' => $issuedAt,

@@ -79,22 +79,22 @@ class InvoiceResource extends Resource
                 TextColumn::make('month')
                     ->badge()
                     ->label('Bulan')
-                    ->visible(fn (ManageInvoices $livewire) => $livewire->activeTab === 'Tagihan SPP')
+                    ->hidden(fn (ManageInvoices $livewire) => $livewire->activeTab == 2)
                     ->sortable(),
                 TextColumn::make('amount')
                     ->label('Jumlah')
                     ->currency('IDR')
-                    ->visible(fn (ManageInvoices $livewire) => $livewire->activeTab === 'Tagihan SPP')
+                    ->hidden(fn (ManageInvoices $livewire) => $livewire->activeTab == 2)
                     ->sortable(),
                 TextColumn::make('fine')
                     ->label('Denda')
                     ->currency('IDR')
-                    ->visible(fn (ManageInvoices $livewire) => $livewire->activeTab === 'Tagihan SPP')
+                    ->hidden(fn (ManageInvoices $livewire) => $livewire->activeTab == 2)
                     ->sortable(),
                 TextColumn::make('discount')
                     ->label('Diskon')
                     ->currency('IDR')
-                    ->visible(fn (ManageInvoices $livewire) => $livewire->activeTab === 'Tagihan SPP')
+                    ->hidden(fn (ManageInvoices $livewire) => $livewire->activeTab == 2)
                     ->sortable(),
                 TextColumn::make('total_amount')
                     ->label('Total')
@@ -123,7 +123,10 @@ class InvoiceResource extends Resource
                     ->label('Tanggal Bayar di Aplikasi')
                     ->dateTime()
                     ->sortable(),
-                TextColumn::make('payment_reference')
+                TextColumn::make('payment_group_reference')
+                    ->label('No. Grup Referensi')
+                    ->searchable(),
+                TextColumn::make('reference_number')
                     ->label('No. Referensi')
                     ->searchable(),
             ])

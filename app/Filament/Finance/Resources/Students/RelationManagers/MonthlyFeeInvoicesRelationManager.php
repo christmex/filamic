@@ -7,6 +7,7 @@ namespace App\Filament\Finance\Resources\Students\RelationManagers;
 use App\Actions\GenerateBulkMonthlyFeeInvoice;
 use App\Enums\InvoiceStatusEnum;
 use App\Enums\MonthEnum;
+use App\Filament\Finance\Actions\RepeatPaymentAction;
 use App\Models\Invoice;
 use App\Models\SchoolTerm;
 use App\Models\SchoolYear;
@@ -40,7 +41,7 @@ class MonthlyFeeInvoicesRelationManager extends RelationManager
             ->recordTitleAttribute('id')
             ->headerActions([
                 Action::make('createInvoice')
-                    ->label('Buat Banyak Tagihan SPP')
+                    ->label('Buat Tagihan SPP')
                     ->icon('tabler-invoice')
                     ->color('success')
                     ->modalIconColor('success')
@@ -164,6 +165,9 @@ class MonthlyFeeInvoicesRelationManager extends RelationManager
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('payment_method'),
+            ])
+            ->recordActions([
+                RepeatPaymentAction::make(),
             ])
             ->filters([
                 SelectFilter::make('school_year_id')

@@ -34,7 +34,7 @@ abstract class AcademicPeriod extends Model
                 Student::query()
                     ->active()
                     ->orWhereHas('enrollments', fn ($enrollments) => $enrollments->active()) // @phpstan-ignore-line
-                    ->with(['currentEnrollment', 'paymentAccounts'])
+                    ->with(['currentEnrollment'])
                     ->chunkById(200, function ($students) {
                         foreach ($students as $student) {
                             /** @var Student $student */

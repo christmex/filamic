@@ -39,6 +39,19 @@ class InvoiceFactory extends Factory
 
             'type' => fake()->randomElement(InvoiceTypeEnum::cases()),
             'month' => fake()->randomElement(MonthEnum::cases()),
+            'virtual_account_number' => function (array $attributes): string {
+                $type = $attributes['type'] ?? InvoiceTypeEnum::MONTHLY_FEE;
+                $type = $type instanceof InvoiceTypeEnum ? $type : InvoiceTypeEnum::from((int) $type);
+
+                $student = Student::find($attributes['student_id']);
+
+                $virtualAccountNumber = match ($type) {
+                    InvoiceTypeEnum::BOOK_FEE => $student?->book_fee_virtual_account,
+                    default => $student?->monthly_fee_virtual_account,
+                };
+
+                return $virtualAccountNumber ?? fake()->numerify('########');
+            },
 
             'amount' => fake()->numberBetween(50_000, 500_000),
             'fine' => 0,

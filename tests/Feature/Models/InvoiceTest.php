@@ -365,9 +365,9 @@ it('generateReferenceNumber has INV prefix with date and ULID', function () {
         ->toMatch('/^INV\/\d{8}\/[0-9A-HJKMNP-TV-Z]{26}$/');
 });
 
-it('generatePaymentReference has PAY prefix with date and ULID', function () {
+it('generateGroupReference has PAY prefix with date and ULID', function () {
     // Arrange & Act
-    $reference = Invoice::generatePaymentReference();
+    $reference = Invoice::generateGroupReference();
 
     // Assert
     expect($reference)->toStartWith('PAY/')

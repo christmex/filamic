@@ -48,7 +48,7 @@ class PayBookFeeInvoice
                 ]);
             }
 
-            $paymentReference = Invoice::generatePaymentReference();
+            $paymentGroupReference = Invoice::generateGroupReference();
 
             foreach ($invoicesToPay as $invoice) {
                 $invoice->updateOrFail([
@@ -56,7 +56,7 @@ class PayBookFeeInvoice
                     'paid_at' => $validated['paid_at'],
                     'paid_at_app' => now(),
                     'payment_method' => $validated['payment_method'],
-                    'payment_reference' => $paymentReference,
+                    'payment_group_reference' => $paymentGroupReference,
                     'description' => $validated['description'],
                 ]);
             }

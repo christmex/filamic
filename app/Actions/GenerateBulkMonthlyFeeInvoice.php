@@ -29,14 +29,12 @@ class GenerateBulkMonthlyFeeInvoice
         return DB::transaction(function () use ($data, $student, $issuedAt, $dueDate) {
             $student->load([
                 'currentEnrollment.schoolYear',
-                'currentPaymentAccount',
                 'branch',
                 'school',
                 'classroom',
             ]);
 
             $enrollment = $student->currentEnrollment;
-            $paymentAccount = $student->currentPaymentAccount;
 
             $insertedInvoices = 0;
             foreach ($data['month'] as $month) {
@@ -56,8 +54,9 @@ class GenerateBulkMonthlyFeeInvoice
                     'type' => InvoiceTypeEnum::MONTHLY_FEE,
                     'month' => $month,
 
-                    'amount' => $paymentAccount->monthly_fee_amount,
-                    'total_amount' => $paymentAccount->monthly_fee_amount,
+                    'virtual_account_number' => $student->monthly_fee_virtual_account,
+                    'amount' => $student->monthly_fee_amount,
+                    'total_amount' => $student->monthly_fee_amount,
 
                     'due_date' => $dueDate,
                     'issued_at' => $issuedAt,

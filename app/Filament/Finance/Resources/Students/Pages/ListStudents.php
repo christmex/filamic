@@ -366,14 +366,13 @@ class ListStudents extends ListRecords
     {
         $branchId = filament()->getTenant()->getKey();
 
-        $activeStudents = Student::active()
-            ->where('branch_id', $branchId)
-            ->with(['currentEnrollment', 'currentPaymentAccount'])
+        $activeStudents = Student::query()
+            ->active()
             ->get();
 
         $totalActive = $activeStudents->count();
 
-        $invoicedInvoices = Invoice::where('branch_id', $branchId)
+        $invoicedInvoices = Invoice::query()
             ->monthlyFeeForThisSchoolYear(month: $month)
             ->with('student')
             ->get();
@@ -388,10 +387,7 @@ class ListStudents extends ListRecords
         $readyStudentIds = Student::active()
             ->where('branch_id', $branchId)
             ->whereHas('currentEnrollment')
-            ->whereHas('currentPaymentAccount', function ($query): void {
-                // @phpstan-ignore method.notFound (Larastan cannot resolve scopes inside whereHas closures)
-                $query->eligibleForMonthlyFee();
-            })
+            ->eligibleForMonthlyFee()
             ->whereDoesntHave('invoices', function ($query) use ($month): void {
                 // @phpstan-ignore method.notFound (Larastan cannot resolve scopes inside whereDoesntHave closures)
                 $query->monthlyFeeForThisSchoolYear(month: $month);
@@ -426,17 +422,11 @@ class ListStudents extends ListRecords
             return 'Belum punya pendaftaran aktif';
         }
 
-        if (blank($student->currentPaymentAccount)) {
-            return 'Belum punya akun pembayaran';
-        }
-
-        $paymentAccount = $student->currentPaymentAccount;
-
-        if ($paymentAccount->monthly_fee_virtual_account === null) {
+        if ($student->monthly_fee_virtual_account === null) {
             return 'VA SPP belum diisi';
         }
 
-        if ($paymentAccount->monthly_fee_amount <= 0) {
+        if ($student->monthly_fee_amount <= 0) {
             return 'Biaya SPP belum diisi';
         }
 
@@ -450,9 +440,9 @@ class ListStudents extends ListRecords
     {
         $branchId = filament()->getTenant()->getKey();
 
-        $activeStudents = Student::active()
-            ->where('branch_id', $branchId)
-            ->with(['currentEnrollment.classroom', 'currentPaymentAccount'])
+        $activeStudents = Student::query()
+            ->active()
+            ->with(['currentEnrollment.classroom'])
             ->get();
 
         $totalActive = $activeStudents->count();
@@ -469,13 +459,10 @@ class ListStudents extends ListRecords
             'status' => $invoice->status->getLabel(),
         ]);
 
-        $readyStudentIds = Student::active()
+        $readyStudentIds = Student::query()
+            ->active()
+            ->eligibleForBookFee()
             ->notInFinalYears()
-            ->where('branch_id', $branchId)
-            ->whereHas('currentEnrollment')
-            ->whereHas('currentPaymentAccount', function ($query): void {
-                $query->where('book_fee_amount', '>', 0);
-            })
             ->whereDoesntHave('invoices', function ($query): void {
                 // @phpstan-ignore method.notFound (Larastan cannot resolve scopes inside whereDoesntHave closures)
                 $query->bookFeeForNextSchoolYear();
@@ -514,12 +501,12 @@ class ListStudents extends ListRecords
             return 'Siswa di tingkat akhir';
         }
 
-        if (blank($student->currentPaymentAccount)) {
-            return 'Belum punya akun pembayaran';
+        if ($student->book_fee_amount <= 0) {
+            return 'Biaya Uang Buku belum diisi';
         }
 
-        if ($student->currentPaymentAccount->book_fee_amount <= 0) {
-            return 'Biaya Uang Buku belum diisi';
+        if ($student->book_fee_virtual_account === null) {
+            return 'VA Uang Buku belum diisi';
         }
 
         return 'Data tidak lengkap';

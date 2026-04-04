@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+use App\Enums\Traits\Equatable;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
 enum InvoiceStatusEnum: int implements HasColor, HasLabel
 {
+    use Equatable;
+
     case UNPAID = 1;
     case PAID = 2;
     case VOID = 3;

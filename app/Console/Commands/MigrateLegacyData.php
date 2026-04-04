@@ -251,26 +251,19 @@ class MigrateLegacyData extends Command
             ->get()
             ->unique(fn (object $item): int => $item->school_id);
 
-        foreach ($legacyPaymentAccounts as $legacyPaymentAccount) {
-            $school = School::where('legacy_old_id', $legacyPaymentAccount->school_id)->first();
+        // Take the most recent payment detail (for students that may have moved schools)
+        $latest = $legacyPaymentAccounts->first();
 
-            $existingAccount = $student->paymentAccounts()
-                ->where('school_id', $school->getKey())
-                ->first();
-
-            if ($existingAccount) {
-                $existingAccount->delete();
-            }
-
-            $student->paymentAccounts()->createQuietly([
-                'legacy_old_id' => $legacyPaymentAccount->id,
-                'school_id' => $school->getKey(),
-                'monthly_fee_virtual_account' => $legacyPaymentAccount->spp_va,
-                'book_fee_virtual_account' => $legacyPaymentAccount->book_va,
-                'monthly_fee_amount' => $legacyPaymentAccount->spp_cost ?? 0,
-                'book_fee_amount' => $legacyPaymentAccount->book_cost ?? 0,
-            ]);
+        if (! $latest) {
+            return;
         }
+
+        $student->updateQuietly([
+            'monthly_fee_virtual_account' => $latest->spp_va,
+            'book_fee_virtual_account' => $latest->book_va,
+            'monthly_fee_amount' => $latest->spp_cost ?? 0,
+            'book_fee_amount' => $latest->book_cost ?? 0,
+        ]);
     }
 
     private function migrateStudentBills(Collection $legacyStudents): void

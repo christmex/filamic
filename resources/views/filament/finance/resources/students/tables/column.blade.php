@@ -69,7 +69,7 @@
                 <span>VA {{ InvoiceTypeEnum::MONTHLY_FEE->getShortLabel() }}</span>
             </div>
             <p class="font-mono text-xs font-medium text-gray-900 dark:text-gray-200">
-                {{ $getRecord()->currentPaymentAccount->monthly_fee_virtual_account ?? '-' }}
+                {{ $getRecord()->monthly_fee_virtual_account ?? '-' }}
             </p>
         </div>
         <div class="rounded-lg border border-orange-500 bg-orange-100 p-3  dark:border-orange/5 dark:bg-[#18181b]">
@@ -79,7 +79,7 @@
                 <span>VA {{ InvoiceTypeEnum::BOOK_FEE->getShortLabel() }}</span>
             </div>
             <p class="font-mono text-xs font-medium text-gray-900 dark:text-gray-200">
-                {{ $getRecord()->currentPaymentAccount->book_fee_virtual_account ?? '-' }}
+                {{ $getRecord()->book_fee_virtual_account ?? '-' }}
             </p>
         </div>
     </div>
