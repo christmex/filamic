@@ -25,8 +25,10 @@ class ManageInvoices extends ManageRecords
     {
         return [
             Action::make('print_invoice_report')
-                ->label('Print Laporan Tagihan Yang Sudah Lunas')
+                ->label('Print Laporan Tagihan')
+                ->modalDescription('Tindakan ini akan mencetak laporan tagihan yang sudah lunas')
                 ->icon('tabler-printer')
+                ->modalIcon('tabler-printer')
                 ->color('primary')
                 ->schema([
                     DateRangePicker::make('paid_at_app')

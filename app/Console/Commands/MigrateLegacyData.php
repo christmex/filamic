@@ -338,6 +338,7 @@ class MigrateLegacyData extends Command
                 'type' => InvoiceTypeEnum::MONTHLY_FEE,
                 'month' => $oldInv->month_id,
 
+                'virtual_account_number' => $oldInv->spp_va,
                 'amount' => $oldInv->cost,
                 'fine' => $oldInv->fine,
                 'discount' => $oldInv->discount,
@@ -399,6 +400,7 @@ class MigrateLegacyData extends Command
 
                 'type' => InvoiceTypeEnum::BOOK_FEE,
 
+                'virtual_account_number' => $oldInv->book_va,
                 'amount' => $oldInv->cost,
                 'discount' => $oldInv->discount,
                 'total_amount' => $oldInv->cost,
@@ -413,6 +415,8 @@ class MigrateLegacyData extends Command
                 'updated_at' => $oldInv->updated_at,
             ]);
         }
+
+        $student->syncActiveStatus();
     }
 
     private function migrateMasterData(): void

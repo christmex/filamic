@@ -22,12 +22,13 @@
 - [x] print laporan uang buku
 - [ ] filter yang punya tagihan saja
 - [ ] kita udh pakai laravel action, di migrate data, pakai aja juga action itu klo diperlukan
-- [ ] delete all student payment account and all related
-- [ ] saat buat tagihan buku, update juga master nominal buku
+- [x] delete all student payment account and all related
+- [ ] saat buat tagihan buku, update juga master nominal buku jika ada tambahan
 - [ ] add widget di dasboard finance
 - [ ] buat fitur ulangi pembayaran
 - [ ] create test for invoice in finance
 - [ ] buat funtion di model invoice buat menangai pembayaran, jadi nnti tinggal panggil gini $invoice->payMonthlyFee() and $invoice->payBookFee() biar satu tempat aja
+- [ ] add ApplyTenantScopesMiddleware untuk scope tenant, walaupun filament udh handle tpi mending kita handle manual dan sklian tmbahkan scope untuk active student via middleware lihat cara TCG projct
 
 - [ ] kenaikan kelas
 - [ ] cek apakah fungsi relasi belongstoclassroom bentrok / duplikat dengan currentClassroom di model student
