@@ -79,22 +79,22 @@ class InvoiceResource extends Resource
                 TextColumn::make('month')
                     ->badge()
                     ->label('Bulan')
-                    ->hidden(fn (ManageInvoices $livewire) => $livewire->activeTab == 2)
+                    ->hidden(fn (ManageInvoices $livewire) => $livewire->activeTab === '2')
                     ->sortable(),
                 TextColumn::make('amount')
                     ->label('Jumlah')
                     ->currency('IDR')
-                    ->hidden(fn (ManageInvoices $livewire) => $livewire->activeTab == 2)
+                    ->hidden(fn (ManageInvoices $livewire) => $livewire->activeTab === '2')
                     ->sortable(),
                 TextColumn::make('fine')
                     ->label('Denda')
                     ->currency('IDR')
-                    ->hidden(fn (ManageInvoices $livewire) => $livewire->activeTab == 2)
+                    ->hidden(fn (ManageInvoices $livewire) => $livewire->activeTab === '2')
                     ->sortable(),
                 TextColumn::make('discount')
                     ->label('Diskon')
                     ->currency('IDR')
-                    ->hidden(fn (ManageInvoices $livewire) => $livewire->activeTab == 2)
+                    ->hidden(fn (ManageInvoices $livewire) => $livewire->activeTab === '2')
                     ->sortable(),
                 TextColumn::make('total_amount')
                     ->label('Total')

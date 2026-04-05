@@ -6,13 +6,15 @@ namespace App\Filament\Finance\Resources\Students\Pages;
 
 use App\Actions\GenerateBookFeeInvoice;
 use App\Actions\GenerateMonthlyFeeInvoice;
-use App\Enums\GradeEnum;
 use App\Enums\MonthEnum;
 use App\Filament\Finance\Resources\Students\StudentResource;
+use App\Models\Branch;
 use App\Models\Invoice;
 use App\Models\SchoolTerm;
 use App\Models\SchoolYear;
 use App\Models\Student;
+use App\Services\BookFeeService;
+use App\Services\MonthlyFeeService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
@@ -30,7 +32,6 @@ use Filament\Schemas\Components\Wizard\Step;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 use Throwable;
 
 class ListStudents extends ListRecords
@@ -132,44 +133,35 @@ class ListStudents extends ListRecords
                     ->icon('tabler-list-check')
                     ->description('Periksa data sebelum membuat tagihan')
                     ->schema(function (Get $get): array {
-                        $draft = self::buildDraftPreview((int) $get('month'));
+                        /** @var Branch $branch */
+                        $branch = filament()->getTenant();
+
+                        $monthlyFeeService = app(MonthlyFeeService::class);
+
+                        $studentsWithoutInvoice = $monthlyFeeService->getStudentsWithoutInvoice($branch, $get('month'))
+                            ->values()
+                            ->mapWithKeys(fn (Student $student, int $index) => [($index + 1) . '. ' . $student->name => 'Tagihan Baru'])
+                            ->toArray();
+
+                        $unpaidInvoices = $monthlyFeeService->getUnpaidInvoices($branch, $get('month'))
+                            ->values()
+                            ->mapWithKeys(fn (Invoice $invoice, int $index) => [($index + 1) . '. ' . $invoice->student_name => $invoice->status->getLabel()])
+                            ->toArray();
 
                         return [
-                            Callout::make('Ringkasan')
-                                ->description(
-                                    str(
-                                        "Total Siswa Aktif: **{$draft['total']}** " .
-                                        "= Siap Dibuat: **{$draft['ready']}** " .
-                                        "+ Sudah Punya Tagihan: **{$draft['invoiced']}** " .
-                                        "+ Belum Siap: **{$draft['not_eligible_count']}**"
-                                    )->inlineMarkdown()->toHtmlString()
-                                )
-                                ->info()
-                                ->columnSpanFull(),
-
-                            KeyValueEntry::make('not_eligible')
-                                ->label('Peserta Didik Yang Belum Siap Dibuatkan Tagihan')
-                                ->keyLabel('Nama')
-                                ->valueLabel('Alasan')
-                                ->columnSpanFull()
-                                ->state(
-                                    $draft['not_eligible_list']
-                                        ->values()
-                                        ->mapWithKeys(fn (array $item, int $index) => [($index + 1) . '. ' . $item['name'] => $item['reason']])
-                                        ->toArray()
-                                ),
-
                             KeyValueEntry::make('invoiced')
                                 ->label('Peserta Didik Yang Sudah Memiliki Tagihan')
                                 ->keyLabel('Nama')
                                 ->valueLabel('Status')
                                 ->columnSpanFull()
-                                ->state(
-                                    $draft['invoiced_list']
-                                        ->values()
-                                        ->mapWithKeys(fn (array $item, int $index) => [($index + 1) . '. ' . $item['name'] => $item['status']])
-                                        ->toArray()
-                                ),
+                                ->state($unpaidInvoices),
+
+                            KeyValueEntry::make('new_invoices')
+                                ->label('Daftar Tagihan Baru')
+                                ->keyLabel('Nama')
+                                ->valueLabel('Status')
+                                ->columnSpanFull()
+                                ->state($studentsWithoutInvoice),
                         ];
                     }),
             ])
@@ -231,9 +223,9 @@ class ListStudents extends ListRecords
             ->slideOver()
             ->modalWidth(Width::FourExtraLarge)
             ->modalAlignment(Alignment::Start)
-            ->modalHeading('Buat Tagihan Uang Buku')
+            ->modalHeading('Buat Atau Perpanjang Tagihan Uang Buku')
             ->modalIconColor('success')
-            ->modalDescription('Buat tagihan uang buku untuk tahun ajaran depan')
+            ->modalDescription('Buat atau perpanjang tagihan uang buku untuk tahun ajaran depan')
             ->steps([
                 Step::make('Konfigurasi')
                     ->icon('tabler-settings')
@@ -266,45 +258,37 @@ class ListStudents extends ListRecords
                     ]),
 
                 Step::make('Pratinjau')
-                    ->icon('tabler-list-check')
+                    ->icon('tabler-check')
                     ->description('Periksa data sebelum membuat tagihan')
                     ->schema(function (): array {
-                        $draft = self::buildBookFeeDraftPreview();
+
+                        /** @var Branch $branch */
+                        $branch = filament()->getTenant();
+
+                        $bookFeeService = app(BookFeeService::class);
 
                         return [
-                            Callout::make('Ringkasan')
-                                ->description(
-                                    str(
-                                        "Total Siswa Aktif: **{$draft['total']}** " .
-                                        "= Siap Dibuat: **{$draft['ready']}** " .
-                                        "+ Sudah Punya Tagihan: **{$draft['invoiced']}** " .
-                                        "+ Belum Siap: **{$draft['not_eligible_count']}**"
-                                    )->inlineMarkdown()->toHtmlString()
-                                )
-                                ->info()
-                                ->columnSpanFull(),
-
-                            KeyValueEntry::make('not_eligible')
-                                ->label('Peserta Didik Yang Belum Siap Dibuatkan Tagihan')
-                                ->keyLabel('Nama')
-                                ->valueLabel('Alasan')
-                                ->columnSpanFull()
-                                ->state(
-                                    $draft['not_eligible_list']
-                                        ->values()
-                                        ->mapWithKeys(fn (array $item, int $index) => [($index + 1) . '. ' . $item['name'] => $item['reason']])
-                                        ->toArray()
-                                ),
-
-                            KeyValueEntry::make('invoiced')
-                                ->label('Peserta Didik Yang Sudah Memiliki Tagihan')
+                            KeyValueEntry::make('new_invoices')
+                                ->label('Daftar Tagihan Baru')
                                 ->keyLabel('Nama')
                                 ->valueLabel('Status')
                                 ->columnSpanFull()
                                 ->state(
-                                    $draft['invoiced_list']
+                                    $bookFeeService->getStudentsWithoutInvoice($branch)
                                         ->values()
-                                        ->mapWithKeys(fn (array $item, int $index) => [($index + 1) . '. ' . $item['name'] => $item['status']])
+                                        ->mapWithKeys(fn (Student $student, int $index) => [($index + 1) . '. ' . $student->name => 'Tagihan Baru'])
+                                        ->toArray()
+                                ),
+
+                            KeyValueEntry::make('invoiced')
+                                ->label('Daftar Pembaruan Tagihan')
+                                ->keyLabel('Nama')
+                                ->valueLabel('Status')
+                                ->columnSpanFull()
+                                ->state(
+                                    $bookFeeService->getUnpaidInvoices($branch)
+                                        ->values()
+                                        ->mapWithKeys(fn (Invoice $invoice, int $index) => [($index + 1) . '. ' . $invoice->student_name => 'Tagihan Diperbaharui'])
                                         ->toArray()
                                 ),
                         ];
@@ -317,7 +301,7 @@ class ListStudents extends ListRecords
                         $data
                     );
 
-                    if ($generateBookFeeInvoice === 0) {
+                    if (empty($generateBookFeeInvoice)) {
                         Notification::make()
                             ->title('Tagihan tidak dibuat!')
                             ->body('Tidak ada siswa yang memenuhi syarat pembuatan tagihan.')
@@ -329,7 +313,7 @@ class ListStudents extends ListRecords
 
                     Notification::make()
                         ->title('Berhasil membuat tagihan!')
-                        ->body("{$generateBookFeeInvoice} tagihan baru dibuat.")
+                        ->body("{$generateBookFeeInvoice['updated']} tagihan diperbarui dan {$generateBookFeeInvoice['created']} tagihan baru dibuat.")
                         ->success()
                         ->send();
 
@@ -359,159 +343,6 @@ class ListStudents extends ListRecords
             });
     }
 
-    /**
-     * @return array{total: int, ready: int, invoiced: int, not_eligible_count: int, not_eligible_list: Collection, invoiced_list: Collection}
-     */
-    private static function buildDraftPreview(int $month): array
-    {
-        $branchId = filament()->getTenant()->getKey();
-
-        $activeStudents = Student::query()
-            ->active()
-            ->get();
-
-        $totalActive = $activeStudents->count();
-
-        $invoicedInvoices = Invoice::query()
-            ->monthlyFeeForThisSchoolYear(month: $month)
-            ->with('student')
-            ->get();
-
-        $invoicedStudentIds = $invoicedInvoices->pluck('student_id');
-
-        $invoicedList = $invoicedInvoices->map(fn (Invoice $invoice): array => [
-            'name' => $invoice->student->name,
-            'status' => $invoice->status->getLabel(),
-        ]);
-
-        $readyStudentIds = Student::active()
-            ->where('branch_id', $branchId)
-            ->whereHas('currentEnrollment')
-            ->eligibleForMonthlyFee()
-            ->whereDoesntHave('invoices', function ($query) use ($month): void {
-                // @phpstan-ignore method.notFound (Larastan cannot resolve scopes inside whereDoesntHave closures)
-                $query->monthlyFeeForThisSchoolYear(month: $month);
-            })
-            ->pluck('id');
-
-        $readyCount = $readyStudentIds->count();
-
-        $notEligibleStudents = $activeStudents->reject(
-            fn (Student $student): bool => $invoicedStudentIds->contains($student->getKey())
-                || $readyStudentIds->contains($student->getKey())
-        );
-
-        $notEligibleList = $notEligibleStudents->values()->map(fn (Student $student): array => [
-            'name' => $student->name,
-            'reason' => self::getIneligibilityReason($student),
-        ]);
-
-        return [
-            'total' => $totalActive,
-            'ready' => $readyCount,
-            'invoiced' => $invoicedList->count(),
-            'not_eligible_count' => $notEligibleList->count(),
-            'not_eligible_list' => $notEligibleList,
-            'invoiced_list' => $invoicedList,
-        ];
-    }
-
-    private static function getIneligibilityReason(Student $student): string
-    {
-        if (blank($student->currentEnrollment)) {
-            return 'Belum punya pendaftaran aktif';
-        }
-
-        if ($student->monthly_fee_virtual_account === null) {
-            return 'VA SPP belum diisi';
-        }
-
-        if ($student->monthly_fee_amount <= 0) {
-            return 'Biaya SPP belum diisi';
-        }
-
-        return 'Data tidak lengkap';
-    }
-
-    /**
-     * @return array{total: int, ready: int, invoiced: int, not_eligible_count: int, not_eligible_list: Collection, invoiced_list: Collection}
-     */
-    private static function buildBookFeeDraftPreview(): array
-    {
-        $branchId = filament()->getTenant()->getKey();
-
-        $activeStudents = Student::query()
-            ->active()
-            ->with(['currentEnrollment.classroom'])
-            ->get();
-
-        $totalActive = $activeStudents->count();
-
-        $invoicedInvoices = Invoice::where('branch_id', $branchId)
-            ->bookFeeForNextSchoolYear()
-            ->with('student')
-            ->get();
-
-        $invoicedStudentIds = $invoicedInvoices->pluck('student_id');
-
-        $invoicedList = $invoicedInvoices->map(fn (Invoice $invoice): array => [
-            'name' => $invoice->student->name,
-            'status' => $invoice->status->getLabel(),
-        ]);
-
-        $readyStudentIds = Student::query()
-            ->active()
-            ->eligibleForBookFee()
-            ->notInFinalYears()
-            ->whereDoesntHave('invoices', function ($query): void {
-                // @phpstan-ignore method.notFound (Larastan cannot resolve scopes inside whereDoesntHave closures)
-                $query->bookFeeForNextSchoolYear();
-            })
-            ->pluck('id');
-
-        $readyCount = $readyStudentIds->count();
-
-        $notEligibleStudents = $activeStudents->reject(
-            fn (Student $student): bool => $invoicedStudentIds->contains($student->getKey())
-                || $readyStudentIds->contains($student->getKey())
-        );
-
-        $notEligibleList = $notEligibleStudents->values()->map(fn (Student $student): array => [
-            'name' => $student->name,
-            'reason' => self::getBookFeeIneligibilityReason($student),
-        ]);
-
-        return [
-            'total' => $totalActive,
-            'ready' => $readyCount,
-            'invoiced' => $invoicedList->count(),
-            'not_eligible_count' => $notEligibleList->count(),
-            'not_eligible_list' => $notEligibleList,
-            'invoiced_list' => $invoicedList,
-        ];
-    }
-
-    private static function getBookFeeIneligibilityReason(Student $student): string
-    {
-        if (blank($student->currentEnrollment)) {
-            return 'Belum punya pendaftaran aktif';
-        }
-
-        if (in_array($student->currentEnrollment->classroom->grade, GradeEnum::finalYears(), true)) {
-            return 'Siswa di tingkat akhir';
-        }
-
-        if ($student->book_fee_amount <= 0) {
-            return 'Biaya Uang Buku belum diisi';
-        }
-
-        if ($student->book_fee_virtual_account === null) {
-            return 'VA Uang Buku belum diisi';
-        }
-
-        return 'Data tidak lengkap';
-    }
-
     public function getTabs(): array
     {
         return [
@@ -524,12 +355,6 @@ class ListStudents extends ListRecords
                 ->modifyQueryUsing(fn (Builder | Student $query) => $query->active()->hasNoProblems())
                 ->icon('tabler-user-check')
                 ->badge(fn () => Student::active()->hasNoProblems()->count()),
-            // 'has_problems' => Tab::make()
-            //     ->label('Data Siswa Aktif Bermasalah')
-            //     ->modifyQueryUsing(fn (Builder | Student $query) => $query->active()->hasProblems())
-            //     ->icon('tabler-user-x')
-            //     ->badgeColor('danger')
-            //     ->badge(fn () => Student::active()->hasProblems()->count()),
             'inactive' => Tab::make()
                 ->label('Tidak Aktif')
                 ->modifyQueryUsing(fn (Builder | Student $query) => $query->inActive())

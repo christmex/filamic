@@ -369,4 +369,11 @@ class Student extends Model
             'is_active' => $isActive,
         ]);
     }
+
+    public function updateBookAmount(int $newAmount): void
+    {
+        $this->updateQuietly([
+            'book_fee_amount' => $newAmount,
+        ]);
+    }
 }

@@ -8,7 +8,7 @@ use App\Enums\InvoiceTypeEnum;
 use App\Models\Branch;
 use App\Models\Invoice;
 use App\Models\Student;
-use Illuminate\Database\Eloquent\Builder;
+use App\Services\MonthlyFeeService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -16,6 +16,10 @@ use Lorisleiva\Actions\Concerns\AsAction;
 class GenerateMonthlyFeeInvoice
 {
     use AsAction;
+
+    public function __construct(
+        private readonly MonthlyFeeService $monthlyFeeService
+    ) {}
 
     public function handle(Branch $branch, array $data): int
     {
@@ -29,25 +33,7 @@ class GenerateMonthlyFeeInvoice
         $issuedAt = $validated['issued_at'];
         $dueDate = $validated['due_date'];
 
-        /** @var Builder|Student $getStudentsQuery */
-        // @phpstan-ignore-next-line
-        $getStudentsQuery = $branch->students();
-
-        $students = $getStudentsQuery
-            ->active()
-            ->whereHas('currentEnrollment')
-            ->eligibleForMonthlyFee()
-            ->whereDoesntHave('invoices', function ($query) use ($month) {
-                /** @var Invoice $query */
-                // @phpstan-ignore-next-line
-                $query->monthlyFeeForThisSchoolYear(month: $month);
-            })
-            ->with([
-                'school',
-                'currentEnrollment.classroom',
-                'currentEnrollment.schoolYear',
-            ])
-            ->get();
+        $students = $this->monthlyFeeService->getStudentsWithoutInvoice($branch, $month);
 
         if ($students->isEmpty()) {
             return 0;

@@ -8,7 +8,7 @@ use App\Enums\InvoiceTypeEnum;
 use App\Models\Branch;
 use App\Models\Invoice;
 use App\Models\Student;
-use Illuminate\Database\Eloquent\Builder;
+use App\Services\BookFeeService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -17,7 +17,11 @@ class GenerateBookFeeInvoice
 {
     use AsAction;
 
-    public function handle(Branch $branch, array $data): int
+    public function __construct(
+        private readonly BookFeeService $bookFeeService
+    ) {}
+
+    public function handle(Branch $branch, array $data): ?array
     {
         $validated = Validator::make($data, [
             'issued_at' => ['required', 'date'],
@@ -29,32 +33,11 @@ class GenerateBookFeeInvoice
         $dueDate = $validated['due_date'];
         $increaseBookCost = (int) ($validated['increase_book_cost'] ?? 0);
 
-        /** @var Builder|Student $getStudentsQuery */
-        // @phpstan-ignore-next-line
-        $getStudentsQuery = $branch->students();
+        $unpaidInvoices = $this->bookFeeService->getUnpaidInvoices($branch);
 
-        $students = $getStudentsQuery
-            ->active()
-            ->notInFinalYears()
-            ->whereHas('currentEnrollment')
-            ->where('book_fee_amount', '>', 0)
-            ->whereDoesntHave('invoices', function ($query) {
-                /** @var Invoice $query */
-                // @phpstan-ignore-next-line
-                $query->bookFeeForNextSchoolYear();
-            })
-            ->with([
-                'school',
-                'currentEnrollment.classroom',
-                'currentEnrollment.schoolYear',
-            ])
-            ->get();
+        $studentsWithoutInvoice = $this->bookFeeService->getStudentsWithoutInvoice($branch);
 
-        if ($students->isEmpty()) {
-            return 0;
-        }
-
-        $newInvoices = $students->map(function (Student $student) use ($issuedAt, $dueDate, $increaseBookCost, $branch) {
+        $newInvoices = $studentsWithoutInvoice->map(function (Student $student) use ($issuedAt, $dueDate, $increaseBookCost, $branch) {
             $enrollment = $student->currentEnrollment;
 
             $prepareFingerprint = [
@@ -94,12 +77,41 @@ class GenerateBookFeeInvoice
             return $preparedData;
         })->toArray();
 
-        return DB::transaction(function () use ($newInvoices) {
-            foreach (array_chunk($newInvoices, 500) as $chunk) {
-                Invoice::upsert($chunk, ['fingerprint'], ['amount', 'total_amount', 'due_date', 'issued_at']);
+        if ($unpaidInvoices->isEmpty() && empty($newInvoices)) {
+            return null;
+        }
+
+        return DB::transaction(function () use ($unpaidInvoices, $issuedAt, $dueDate, $increaseBookCost, $newInvoices) {
+
+            // NOTE: I know this is causes N+1 queries, but after a lot consideration we choose this way, instead using package or raq sql, since it only looping hundred of data
+            // for update invoice
+            $unpaidInvoices->each(function (Invoice $invoice) use ($increaseBookCost, $dueDate, $issuedAt) {
+                $invoice->student->update([
+                    'book_fee_amount' => $invoice->total_amount + $increaseBookCost,
+                ]);
+
+                $invoice->update([
+                    'amount' => $invoice->total_amount + $increaseBookCost,
+                    'total_amount' => $invoice->total_amount + $increaseBookCost,
+                    'due_date' => $dueDate,
+                    'issued_at' => $issuedAt,
+                ]);
+            });
+
+            // NOTE: I know this is causes N+1 queries, but after a lot consideration we choose this way, instead using package or raq sql, since it only looping hundred of data
+            // for new invoice
+            foreach ($newInvoices as $invoice) {
+                Invoice::create($invoice);
+                Student::where('id', $invoice['student_id'])->update([
+                    'book_fee_amount' => $invoice['total_amount'],
+                ]);
             }
 
-            return count($newInvoices);
+            return [
+                'updated' => $unpaidInvoices->count(),
+                'created' => count($newInvoices),
+            ];
         });
+
     }
 }

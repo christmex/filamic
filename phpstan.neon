@@ -22,3 +22,9 @@ parameters:
         -
             message: '#Call to an undefined method Filament\\Tables\\Columns\\TextColumn::currency\(\)#'
             path: app/Filament/*
+
+        -
+            message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany::#'
+            paths:
+                - app/Services/BookFeeService.php
+                - app/Services/MonthlyFeeService.php

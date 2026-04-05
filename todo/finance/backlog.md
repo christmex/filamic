@@ -29,6 +29,7 @@
 - [ ] create test for invoice in finance
 - [ ] buat funtion di model invoice buat menangai pembayaran, jadi nnti tinggal panggil gini $invoice->payMonthlyFee() and $invoice->payBookFee() biar satu tempat aja
 - [ ] add ApplyTenantScopesMiddleware untuk scope tenant, walaupun filament udh handle tpi mending kita handle manual dan sklian tmbahkan scope untuk active student via middleware lihat cara TCG projct
+- [ ] cek ulang pembuatan tagihan uang buku, harus update juga uang buku master dan update uang buku yg udh ada
 
 - [ ] kenaikan kelas
 - [ ] cek apakah fungsi relasi belongstoclassroom bentrok / duplikat dengan currentClassroom di model student

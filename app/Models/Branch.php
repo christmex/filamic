@@ -22,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Classroom> $classrooms
  * @property-read int|null $classrooms_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Invoice> $invoices
+ * @property-read int|null $invoices_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, ProductStock> $productStocks
  * @property-read int|null $product_stocks_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, School> $schools
@@ -75,6 +77,11 @@ class Branch extends Model
     public function students(): HasMany
     {
         return $this->hasMany(Student::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
     }
 
     public function stockMovements(): HasMany

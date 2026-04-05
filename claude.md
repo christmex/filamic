@@ -59,7 +59,7 @@ Never assume versions. Always verify from these files.
 - `app/Enums/` — all enums, backed enums preferred
 - `app/Filament/` — resources and pages only, zero business logic
 - Livewire: `app/Livewire/`, views: `resources/views/livewire/`
-- No `app/Services/` — except for API or external service integration
+- `app/Services/` — for external/API integrations, or shared data sources where the same query combination serves multiple callers (e.g. preview + execution of the same business operation)
 
 ## Action Pattern
 
@@ -207,7 +207,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 - Execute PHP in app context for debugging and testing code. Do not create models without user approval, prefer tests with factories instead. Prefer existing Artisan commands over custom tinker code.
 - Always use single quotes to prevent shell expansion: `php artisan tinker --execute 'Your::code();'`
-  - Double quotes for PHP strings inside: `php artisan tinker --execute 'User::where("active", true)->count();'`
+    - Double quotes for PHP strings inside: `php artisan tinker --execute 'User::where("active", true)->count();'`
 
 === php rules ===
 
@@ -338,13 +338,13 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
 
 Select::make('type')
-    ->options(CompanyType::class)
-    ->required()
-    ->live(),
+->options(CompanyType::class)
+->required()
+->live(),
 
 TextInput::make('company_name')
-    ->required()
-    ->visible(fn (Get $get): bool => $get('type') === 'business'),
+->required()
+->visible(fn (Get $get): bool => $get('type') === 'business'),
 
 </code-snippet>
 
@@ -354,7 +354,7 @@ Use `state()` with a `Closure` to compute derived column values:
 use Filament\Tables\Columns\TextColumn;
 
 TextColumn::make('full_name')
-    ->state(fn (User $record): string => "{$record->first_name} {$record->last_name}"),
+->state(fn (User $record): string => "{$record->first_name} {$record->last_name}"),
 
 </code-snippet>
 
@@ -365,12 +365,12 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 
 Action::make('updateEmail')
-    ->schema([
-        TextInput::make('email')
-            ->email()
-            ->required(),
-    ])
-    ->action(fn (array $data, User $record) => $record->update($data))
+->schema([
+TextInput::make('email')
+->email()
+->required(),
+])
+->action(fn (array $data, User $record) => $record->update($data))
 
 </code-snippet>
 
@@ -382,9 +382,9 @@ Always authenticate before testing panel functionality. Filament uses Livewire, 
 use function Pest\Livewire\livewire;
 
 livewire(ListUsers::class)
-    ->assertCanSeeTableRecords($users)
+->assertCanSeeTableRecords($users)
     ->searchTable($users->first()->name)
-    ->assertCanSeeTableRecords($users->take(1))
+->assertCanSeeTableRecords($users->take(1))
     ->assertCanNotSeeTableRecords($users->skip(1));
 
 </code-snippet>
@@ -394,17 +394,17 @@ use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Livewire\livewire;
 
 livewire(CreateUser::class)
-    ->fillForm([
-        'name' => 'Test',
-        'email' => 'test@example.com',
-    ])
-    ->call('create')
-    ->assertNotified()
-    ->assertRedirect();
+->fillForm([
+'name' => 'Test',
+'email' => 'test@example.com',
+])
+->call('create')
+->assertNotified()
+->assertRedirect();
 
 assertDatabaseHas(User::class, [
-    'name' => 'Test',
-    'email' => 'test@example.com',
+'name' => 'Test',
+'email' => 'test@example.com',
 ]);
 
 </code-snippet>
@@ -413,16 +413,16 @@ assertDatabaseHas(User::class, [
 use function Pest\Livewire\livewire;
 
 livewire(CreateUser::class)
-    ->fillForm([
-        'name' => null,
-        'email' => 'invalid-email',
-    ])
-    ->call('create')
-    ->assertHasFormErrors([
-        'name' => 'required',
-        'email' => 'email',
-    ])
-    ->assertNotNotified();
+->fillForm([
+'name' => null,
+'email' => 'invalid-email',
+])
+->call('create')
+->assertHasFormErrors([
+'name' => 'required',
+'email' => 'email',
+])
+->assertNotNotified();
 
 </code-snippet>
 
@@ -431,9 +431,9 @@ use Filament\Actions\DeleteAction;
 use function Pest\Livewire\livewire;
 
 livewire(EditUser::class, ['record' => $user->id])
-    ->callAction(DeleteAction::class)
-    ->assertNotified()
-    ->assertRedirect();
+->callAction(DeleteAction::class)
+->assertNotified()
+->assertRedirect();
 
 </code-snippet>
 
@@ -442,10 +442,10 @@ use Filament\Actions\Testing\TestAction;
 use function Pest\Livewire\livewire;
 
 livewire(ListUsers::class)
-    ->callAction(TestAction::make('promote')->table($user), [
-        'role' => 'admin',
-    ])
-    ->assertNotified();
+->callAction(TestAction::make('promote')->table($user), [
+'role' => 'admin',
+])
+->assertNotified();
 
 </code-snippet>
 
