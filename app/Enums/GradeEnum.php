@@ -71,4 +71,9 @@ enum GradeEnum: int implements HasLabel
     {
         return [self::KINDERGARTEN_B, self::GRADE_6, self::GRADE_9, self::GRADE_12];
     }
+
+    public function isFinalYear(): bool
+    {
+        return in_array($this, self::finalYears(), true);
+    }
 }

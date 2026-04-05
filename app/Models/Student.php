@@ -311,6 +311,11 @@ class Student extends Model
         });
     }
 
+    public function isNotInFinalYears(): bool
+    {
+        return ! ($this->classroom?->grade?->isFinalYear() ?? false);
+    }
+
     public function canBeDelete(): bool
     {
         return $this->enrollments()->doesntExist();
@@ -367,13 +372,6 @@ class Student extends Model
             'school_id' => $enrollment->school_id ?? $this->school_id,
             'classroom_id' => $enrollment->classroom_id ?? $this->classroom_id,
             'is_active' => $isActive,
-        ]);
-    }
-
-    public function updateBookAmount(int $newAmount): void
-    {
-        $this->updateQuietly([
-            'book_fee_amount' => $newAmount,
         ]);
     }
 }

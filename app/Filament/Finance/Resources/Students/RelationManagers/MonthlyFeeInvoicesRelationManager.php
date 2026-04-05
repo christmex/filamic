@@ -25,6 +25,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Throwable;
 
+/**
+ * @method Student getOwnerRecord()
+ */
 class MonthlyFeeInvoicesRelationManager extends RelationManager
 {
     protected static string $relationship = 'invoices';
@@ -41,6 +44,7 @@ class MonthlyFeeInvoicesRelationManager extends RelationManager
             ->recordTitleAttribute('id')
             ->headerActions([
                 Action::make('createInvoice')
+                    ->visible(fn () => $this->getOwnerRecord()->isActive())
                     ->label('Buat Tagihan SPP')
                     ->icon('tabler-invoice')
                     ->color('success')

@@ -86,13 +86,16 @@ class GenerateBookFeeInvoice
             // NOTE: I know this is causes N+1 queries, but after a lot consideration we choose this way, instead using package or raq sql, since it only looping hundred of data
             // for update invoice
             $unpaidInvoices->each(function (Invoice $invoice) use ($increaseBookCost, $dueDate, $issuedAt) {
+
+                $newAmount = $invoice->student->book_fee_amount + $increaseBookCost;
+
                 $invoice->student->update([
-                    'book_fee_amount' => $invoice->total_amount + $increaseBookCost,
+                    'book_fee_amount' => $newAmount,
                 ]);
 
                 $invoice->update([
-                    'amount' => $invoice->total_amount + $increaseBookCost,
-                    'total_amount' => $invoice->total_amount + $increaseBookCost,
+                    'amount' => $newAmount,
+                    'total_amount' => $newAmount,
                     'due_date' => $dueDate,
                     'issued_at' => $issuedAt,
                 ]);
