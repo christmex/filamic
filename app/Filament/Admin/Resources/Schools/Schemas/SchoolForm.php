@@ -46,16 +46,15 @@ class SchoolForm
                                 TextInput::make('city'),
                                 TextInput::make('province'),
                                 TextInput::make('postal_code'),
-                            ]),
+                            ])->columns(2),
                         Tabs\Tab::make('Contact & Communication')
                             ->icon(Heroicon::OutlinedChatBubbleBottomCenterText)
                             ->schema([
                                 TextInput::make('website')
-                                    ->url()
-                                    ->columnSpanFull(),
-                                TextInput::make('telp')->tel(),
+                                    ->url(),
                                 TextInput::make('email')->label('Email address')->email(),
-                            ]),
+                                TextInput::make('telp')->tel()->columnSpanFull(),
+                            ])->columns(2),
                     ]),
             ]);
     }

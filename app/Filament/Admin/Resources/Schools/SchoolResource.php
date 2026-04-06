@@ -7,9 +7,7 @@ namespace App\Filament\Admin\Resources\Schools;
 use App\Filament\Admin\Resources\Schools\Pages\CreateSchool;
 use App\Filament\Admin\Resources\Schools\Pages\EditSchool;
 use App\Filament\Admin\Resources\Schools\Pages\ListSchools;
-use App\Filament\Admin\Resources\Schools\Pages\ViewSchool;
 use App\Filament\Admin\Resources\Schools\Schemas\SchoolForm;
-use App\Filament\Admin\Resources\Schools\Schemas\SchoolInfolist;
 use App\Filament\Admin\Resources\Schools\Tables\SchoolsTable;
 use App\Models\School;
 use BackedEnum;
@@ -38,17 +36,11 @@ class SchoolResource extends Resource
         return SchoolsTable::configure($table);
     }
 
-    public static function infolist(Schema $schema): Schema
-    {
-        return SchoolInfolist::configure($schema);
-    }
-
     public static function getPages(): array
     {
         return [
             'index' => ListSchools::route('/'),
             'create' => CreateSchool::route('/create'),
-            'view' => ViewSchool::route('/{record}'),
             'edit' => EditSchool::route('/{record}/edit'),
         ];
     }

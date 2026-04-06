@@ -5,167 +5,160 @@ declare(strict_types=1);
 use App\Filament\Admin\Resources\Schools\Pages\CreateSchool;
 use App\Filament\Admin\Resources\Schools\Pages\EditSchool;
 use App\Filament\Admin\Resources\Schools\Pages\ListSchools;
-use App\Filament\Admin\Resources\Schools\Pages\ViewSchool;
 use App\Filament\Admin\Resources\Schools\SchoolResource;
 use App\Models\School;
 use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
-// beforeEach(fn () => $this->loginAdmin());
+beforeEach(fn () => $this->loginAdmin());
 
-// test('list page is accessible', function () {
-//     $this->get(SchoolResource::getUrl())->assertOk();
-// });
+test('list page is accessible', function () {
+    // Act & Assert
+    $this->get(SchoolResource::getUrl())->assertOk();
+});
 
-// test('list page renders columns', function (string $column) {
-//     School::factory()->create();
+test('list page renders columns', function (string $column) {
+    // Arrange
+    School::factory()->create();
 
-//     Livewire::test(ListSchools::class)
-//         ->assertCanRenderTableColumn($column);
-// })->with([
-//     'name',
-// ]);
+    // Act & Assert
+    Livewire::test(ListSchools::class)
+        ->assertCanRenderTableColumn($column);
+})->with([
+    'name',
+    'level',
+]);
 
-// test('list page shows rows', function () {
-//     $records = School::factory(3)->create();
+test('list page shows rows', function () {
+    // Arrange
+    $records = School::factory(3)->create();
 
-//     Livewire::test(ListSchools::class)
-//         ->assertCanSeeTableRecords($records);
-// });
+    // Act & Assert
+    Livewire::test(ListSchools::class)
+        ->assertCanSeeTableRecords($records);
+});
 
-// test('list page rows have view action', function () {
-//     $record = School::factory()->create();
+test('list page rows have edit action', function () {
+    // Arrange
+    $record = School::factory()->create();
 
-//     Livewire::test(ListSchools::class)
-//         ->assertActionVisible(TestAction::make('view')->table($record));
-// });
+    // Act & Assert
+    Livewire::test(ListSchools::class)
+        ->assertActionVisible(TestAction::make('edit')->table($record));
+});
 
-// test('can search for records on list page', function (string $attribute) {
-//     $record = School::factory()->create();
+test('create page is accessible', function () {
+    // Act & Assert
+    $this->get(SchoolResource::getUrl('create'))->assertOk();
+});
 
-//     Livewire::test(ListSchools::class)
-//         ->searchTable(data_get($record, $attribute))
-//         ->assertCanSeeTableRecords([$record]);
-// })->with([
-//     'name',
-// ]);
+test('cannot create a record without required fields', function () {
+    // Act & Assert
+    Livewire::test(CreateSchool::class)
+        ->call('create')
+        ->assertHasFormErrors([
+            'branch_id' => 'required',
+            'name' => 'required',
+            'level' => 'required',
+        ]);
+});
 
-// test('create page is accessible', function () {
-//     $this->get(SchoolResource::getUrl('create'))->assertOk();
-// });
+test('cannot create a record with duplicate name', function () {
+    // Arrange
+    $data = School::factory()->create(['name' => 'School ABC']);
 
-// test('cannot create a record without required fields', function () {
-//     Livewire::test(CreateSchool::class)
-//         ->call('create')
-//         ->assertHasFormErrors(['name' => 'required']);
-// });
+    // Act & Assert
+    Livewire::test(CreateSchool::class)
+        ->fillForm(['name' => 'School ABC'])
+        ->call('create')
+        ->assertHasFormErrors(['name' => 'unique']);
+});
 
-// test('cannot create a record with duplicate name', function () {
-//     School::factory()->create(['name' => 'School ABC']);
+test('can create a record', function () {
+    // Arrange
+    $data = School::factory()->make([
+        'name' => 'New Test School',
+    ]);
 
-//     Livewire::test(CreateSchool::class)
-//         ->fillForm(['name' => 'School ABC'])
-//         ->call('create')
-//         ->assertHasFormErrors(['name' => 'unique']);
-// });
+    // Act
+    Livewire::test(CreateSchool::class)
+        ->fillForm($data->toArray())
+        ->call('create')
+        ->assertHasNoFormErrors();
 
-// test('can create a record', function () {
-//     $data = School::factory()->make([
-//         'name' => 'New Test School',
-//     ]);
+    // Assert
+    expect(School::latest('id')->first())
+        ->name->toBe('New Test School');
+});
 
-//     Livewire::test(CreateSchool::class)
-//         ->fillForm($data->toArray())
-//         ->call('create')
-//         ->assertHasNoFormErrors();
+test('edit page is accessible', function () {
+    // Arrange
+    $record = School::factory()->create();
 
-//     expect(School::latest('id')->first())
-//         ->name->toBe('New Test School');
-// });
+    // Act & Assert
+    $this->get(SchoolResource::getUrl('edit', ['record' => $record]))->assertOk();
+});
 
-// test('view page is accessible', function () {
-//     $record = School::factory()->create();
+test('cannot save a record without required fields', function () {
+    // Arrange
+    $record = School::factory()->create();
 
-//     $this->get(SchoolResource::getUrl('view', ['record' => $record]))->assertOk();
-// });
+    // Act & Assert
+    Livewire::test(EditSchool::class, ['record' => $record->getRouteKey()])
+        ->fillForm([
+            'branch_id' => null,
+            'name' => null,
+            'level' => null,
+        ])
+        ->call('save')
+        ->assertHasFormErrors([
+            'branch_id' => 'required',
+            'name' => 'required',
+            'level' => 'required',
+        ]);
+});
 
-// test('view page shows all information', function () {
-//     $record = School::factory()->create();
+test('cannot save a record with duplicate name', function () {
+    // Arrange
+    [$schoolA, $schoolB] = School::factory(2)
+        ->forEachSequence(
+            ['name' => 'School A'],
+            ['name' => 'School B'],
+        )
+        ->create();
 
-//     Livewire::test(ViewSchool::class, ['record' => $record->getRouteKey()])
-//         ->assertSchemaStateSet([
-//             'name' => $record->name,
-//             'address' => $record->address,
-//             'npsn' => $record->npsn,
-//             'nis_nss_nds' => $record->nis_nss_nds,
-//             'telp' => $record->telp,
-//             'postal_code' => $record->postal_code,
-//             'village' => $record->village,
-//             'subdistrict' => $record->subdistrict,
-//             'city' => $record->city,
-//             'province' => $record->province,
-//             'website' => $record->website,
-//             'email' => $record->email,
-//         ]);
-// });
+    // Act & Assert
+    Livewire::test(EditSchool::class, ['record' => $schoolA->getRouteKey()])
+        ->fillForm(['name' => $schoolB->name])
+        ->call('save')
+        ->assertHasFormErrors(['name' => 'unique']);
+});
 
-// test('view page has edit action', function () {
-//     $record = School::factory()->create();
+test('can save a record', function () {
+    // Arrange
+    $record = School::factory()->create();
 
-//     Livewire::test(ViewSchool::class, ['record' => $record->getRouteKey()])
-//         ->assertActionVisible(TestAction::make('edit')->table($record));
-// });
+    $newData = School::factory()->make([
+        'branch_id' => $record->branch_id,
+        'name' => 'Updated School Name',
+        'address' => 'Updated Address',
+    ]);
 
-// test('edit page is accessible', function () {
-//     $record = School::factory()->create();
+    // Act & Assert
+    Livewire::test(EditSchool::class, ['record' => $record->getRouteKey()])
+        ->fillForm($newData->toArray())
+        ->call('save')
+        ->assertHasNoFormErrors();
 
-//     $this->get(SchoolResource::getUrl('edit', ['record' => $record]))->assertOk();
-// });
+    expect($record->refresh())
+        ->name->toBe('Updated School Name')
+        ->address->toBe('Updated Address');
+});
 
-// test('cannot save a record without required fields', function () {
-//     $record = School::factory()->create();
+test('can save a record without changes', function () {
+    $record = School::factory()->create();
 
-//     Livewire::test(EditSchool::class, ['record' => $record->getRouteKey()])
-//         ->fillForm(['name' => null])
-//         ->call('save')
-//         ->assertHasFormErrors(['name' => 'required']);
-// });
-
-// test('cannot save a record with duplicate name', function () {
-//     [$schoolA, $schoolB] = School::factory(2)
-//         ->forEachSequence(
-//             ['name' => 'School A'],
-//             ['name' => 'School B'],
-//         )
-//         ->create();
-
-//     Livewire::test(EditSchool::class, ['record' => $schoolA->getRouteKey()])
-//         ->fillForm(['name' => 'School B'])
-//         ->call('save')
-//         ->assertHasFormErrors(['name' => 'unique']);
-// });
-
-// test('can save a record', function () {
-//     $record = School::factory()->create();
-//     $newData = School::factory()->make([
-//         'name' => 'Updated School Name',
-//         'address' => 'Updated Address',
-//     ]);
-
-//     Livewire::test(EditSchool::class, ['record' => $record->getRouteKey()])
-//         ->fillForm($newData->toArray())
-//         ->call('save')
-//         ->assertHasNoFormErrors();
-
-//     expect($record->refresh())
-//         ->name->toBe('Updated School Name')
-//         ->address->toBe('Updated Address');
-// });
-
-// test('can save a record without changes', function () {
-//     $record = School::factory()->create();
-
-//     Livewire::test(EditSchool::class, ['record' => $record->getRouteKey()])
-//         ->call('save')
-//         ->assertHasNoFormErrors();
-// });
+    Livewire::test(EditSchool::class, ['record' => $record->getRouteKey()])
+        ->call('save')
+        ->assertHasNoFormErrors();
+});
