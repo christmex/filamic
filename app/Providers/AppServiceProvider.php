@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\ViewAction;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Textarea;
@@ -22,7 +23,7 @@ use Illuminate\Support\ServiceProvider;
 use Livewire\Component as LivewireComponent;
 use Livewire\Features\SupportTesting\Testable;
 
-class AppServiceProvider extends ServiceProvider
+final class AppServiceProvider extends ServiceProvider
 {
     public function register(): void {}
 
@@ -66,6 +67,10 @@ class AppServiceProvider extends ServiceProvider
         Textarea::configureUsing(fn (Textarea $textArea) => $textArea
             ->maxLength(2 ** 16 - 1) // 65,535 (MySQL TEXT, Laravel 'text')
             ->rows(4));
+
+        CreateAction::configureUsing(function (CreateAction $action) {
+            $action->icon('tabler-plus');
+        }, isImportant: true);
 
         ViewAction::configureUsing(function (ViewAction $action) {
             $action

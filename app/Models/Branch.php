@@ -59,24 +59,9 @@ class Branch extends Model
 
     protected $guarded = ['id'];
 
-    public function schools(): HasMany
-    {
-        return $this->hasMany(School::class);
-    }
-
-    public function users(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class);
-    }
-
     public function classrooms(): HasManyThrough
     {
         return $this->hasManyThrough(Classroom::class, School::class);
-    }
-
-    public function students(): HasMany
-    {
-        return $this->hasMany(Student::class);
     }
 
     public function invoices(): HasMany
@@ -84,20 +69,35 @@ class Branch extends Model
         return $this->hasMany(Invoice::class);
     }
 
-    public function stockMovements(): HasMany
-    {
-        return $this->hasMany(ProductStockMovement::class);
-    }
-
     public function productStocks(): HasMany
     {
         return $this->hasMany(ProductStock::class);
     }
 
-    public function stockFor(ProductItem $productItem)
+    public function schools(): HasMany
     {
-        return $this->productStocks()->where('product_item_id', $productItem->getKey())->first();
+        return $this->hasMany(School::class);
     }
+
+    public function students(): HasMany
+    {
+        return $this->hasMany(Student::class);
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(ProductStockMovement::class);
+    }
+
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class);
+    }
+
+    // public function stockFor(ProductItem $productItem)
+    // {
+    //     return $this->productStocks()->where('product_item_id', $productItem->getKey())->first();
+    // }
 
     public function updateStock(ProductItem $productItem, int $quantity): void
     {

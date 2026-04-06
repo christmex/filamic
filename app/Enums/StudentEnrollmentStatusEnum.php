@@ -10,11 +10,12 @@ use Filament\Support\Contracts\HasLabel;
 
 enum StudentEnrollmentStatusEnum: int implements HasColor, HasIcon, HasLabel
 {
-    case ENROLLED = 1;
-    case GRADUATED = 4;
-    case INACTIVE = 3;
-    // case PROMOTED = 2;
-    // case STAYED = 3;
+    case DRAFT = 1;
+    case ENROLLED = 2;
+    case PROMOTED = 3;
+    case STAYED = 4;
+    case INACTIVE = 5;
+    case GRADUATED = 6;
     // case MOVED_INTERNAL = 5;
     // case MOVED_EXTERNAL = 6;
     // case DROPPED_OUT = 7;
@@ -22,11 +23,12 @@ enum StudentEnrollmentStatusEnum: int implements HasColor, HasIcon, HasLabel
     public function getLabel(): string
     {
         return match ($this) {
+            self::DRAFT => 'Draft',
             self::ENROLLED => 'Terdaftar',
-            self::GRADUATED => 'Lulus',
+            self::PROMOTED => 'Naik Kelas',
+            self::STAYED => 'Tinggal Kelas',
             self::INACTIVE => 'Tidak Aktif',
-            // self::PROMOTED => 'Naik Kelas',
-            // self::STAYED => 'Tinggal Kelas',
+            self::GRADUATED => 'Lulus',
             // self::MOVED_INTERNAL => 'Mutasi Internal',
             // self::MOVED_EXTERNAL => 'Mutasi Keluar',
             // self::DROPPED_OUT => 'Putus Sekolah',
@@ -36,23 +38,26 @@ enum StudentEnrollmentStatusEnum: int implements HasColor, HasIcon, HasLabel
     public function getColor(): string
     {
         return match ($this) {
+            self::DRAFT => 'gray',
             self::ENROLLED => 'success',
-            self::GRADUATED => 'info',
+            self::PROMOTED => 'success',
+            self::STAYED => 'warning',
             self::INACTIVE => 'danger',
-            // self::PROMOTED, self::GRADUATED => 'success',
-            // self::STAYED, self::DROPPED_OUT => 'danger',
+            self::GRADUATED => 'info',
             // self::MOVED_INTERNAL, self::MOVED_EXTERNAL => 'warning',
+            // self::DROPPED_OUT => 'danger',
         };
     }
 
     public function getIcon(): string
     {
         return match ($this) {
+            self::DRAFT => 'tabler-circle-dashed',
             self::ENROLLED => 'tabler-circle-dashed-check',
-            self::GRADUATED => 'tabler-circle-check',
+            self::PROMOTED => 'tabler-circle-check',
+            self::STAYED => 'tabler-circle-dashed',
             self::INACTIVE => 'tabler-circle-x',
-            // self::PROMOTED => 'heroicon-m-arrow-trending-up',
-            // self::STAYED => 'heroicon-m-arrow-path',
+            self::GRADUATED => 'tabler-circle-check',
             // self::MOVED_INTERNAL => 'heroicon-m-arrows-right-left',
             // self::MOVED_EXTERNAL => 'heroicon-m-arrow-right-on-rectangle',
             // self::DROPPED_OUT => 'heroicon-m-x-circle',

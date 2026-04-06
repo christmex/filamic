@@ -60,6 +60,7 @@ Never assume versions. Always verify from these files.
 - `app/Filament/` — resources and pages only, zero business logic
 - Livewire: `app/Livewire/`, views: `resources/views/livewire/`
 - `app/Services/` — for external/API integrations, or shared data sources where the same query combination serves multiple callers (e.g. preview + execution of the same business operation)
+- `app/Models/` put $guarded, casts function, boot function, relationships (alphabetical order), then scopes (alphabetical order), then accessor and mutator (alphabetical order), then other methods (alphabetical order).
 
 ## Action Pattern
 
