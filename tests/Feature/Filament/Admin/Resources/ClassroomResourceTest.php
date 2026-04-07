@@ -10,6 +10,7 @@ use App\Filament\Admin\Resources\Classrooms\Pages\EditClassroom;
 use App\Filament\Admin\Resources\Classrooms\Pages\ListClassrooms;
 use App\Models\Classroom;
 use App\Models\School;
+use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
 beforeEach(fn () => $this->loginAdmin());
@@ -27,7 +28,6 @@ test('list page renders columns', function (string $column) {
     Livewire::test(ListClassrooms::class)
         ->assertCanRenderTableColumn($column);
 })->with([
-    'school.name',
     'name',
     'grade',
     'phase',
@@ -43,6 +43,15 @@ test('list page shows rows', function () {
         ->assertCanSeeTableRecords($records);
 });
 
+test('list page rows have edit action', function () {
+    // Arrange
+    $record = Classroom::factory()->create();
+
+    // Act & Assert
+    Livewire::test(ListClassrooms::class)
+        ->assertActionVisible(TestAction::make('edit')->table($record));
+});
+
 test('can search for records on list page', function (string $attribute) {
     // Arrange
     $record = Classroom::factory()->create();
@@ -53,7 +62,6 @@ test('can search for records on list page', function (string $attribute) {
         ->assertCanSeeTableRecords([$record]);
 })->with([
     'name',
-    'school.name',
 ]);
 
 test('can filter records by school', function () {
@@ -101,6 +109,23 @@ test('cannot create a record without required fields', function () {
         ]);
 });
 
+test('cannot create a record with duplicate name', function () {
+    // Arrange
+    $school = School::factory()->create(['name' => 'School ABC']);
+    Classroom::factory()
+        ->for($school)
+        ->create(['name' => 'Matthew 1']);
+
+    // Act & Assert
+    Livewire::test(CreateClassroom::class)
+        ->fillForm([
+            'school_id' => $school->getKey(),
+            'name' => 'Matthew 1',
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['name' => 'unique']);
+});
+
 test('can create a record', function () {
     // Arrange
     $school = School::factory()->create(['level' => LevelEnum::SENIOR_HIGH->value]);
@@ -119,18 +144,10 @@ test('can create a record', function () {
         ->assertHasNoFormErrors();
 
     // Assert
-    expect(Classroom::query()->first())
+    expect(Classroom::first())
         ->not->toBeNull()
         ->name->toBe('New Test Classroom')
         ->grade->toBe(GradeEnum::GRADE_10);
-});
-
-test('view page is accessible', function () {
-    // Arrange
-    $record = Classroom::factory()->create();
-
-    // Act & Assert
-    $this->get(ClassroomResource::getUrl('view', ['record' => $record]))->assertOk();
 });
 
 test('edit page is accessible', function () {
@@ -149,13 +166,36 @@ test('cannot save a record without required fields', function () {
     Livewire::test(EditClassroom::class, ['record' => $record->getRouteKey()])
         ->fillForm([
             'school_id' => null,
+            'grade' => null,
             'name' => null,
         ])
         ->call('save')
         ->assertHasFormErrors([
             'school_id' => 'required',
+            'grade' => 'required',
             'name' => 'required',
         ]);
+});
+
+test('cannot save a record with duplicate name', function () {
+    // Arrange
+    $school = School::factory()->create(['name' => 'School ABC']);
+    [$record1, $record2] = Classroom::factory(2)
+        ->for($school)
+        ->sequence(
+            ['name' => 'Matthew 1'],
+            ['name' => 'Matthew 2'],
+        )
+        ->create();
+
+    // Act & Assert
+    Livewire::test(EditClassroom::class, ['record' => $record1->getRouteKey()])
+        ->fillForm([
+            'school_id' => $school->getKey(),
+            'name' => 'Matthew 2',
+        ])
+        ->call('save')
+        ->assertHasFormErrors(['name' => 'unique']);
 });
 
 test('can save a record', function () {
@@ -166,7 +206,6 @@ test('can save a record', function () {
     // Act
     Livewire::test(EditClassroom::class, ['record' => $record->getRouteKey()])
         ->fillForm([
-            'temp_level' => $school->level->value,
             'name' => 'Updated Classroom',
         ])
         ->call('save')
@@ -184,9 +223,6 @@ test('can save a record without changes', function () {
 
     // Act & Assert
     Livewire::test(EditClassroom::class, ['record' => $record->getRouteKey()])
-        ->fillForm([
-            'temp_level' => $school->level->value,
-        ])
         ->call('save')
         ->assertHasNoFormErrors();
 });

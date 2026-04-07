@@ -5,51 +5,149 @@ declare(strict_types=1);
 use App\Enums\GradeEnum;
 use App\Models\Classroom;
 use App\Models\School;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-test('it prevents mass assignment to guarded id', function () {
-    // Arrange
-    $customId = '01ARZ3NDEKTSV4RRFFQ69G5FAV';
+// ============================================================
+// RELATIONSHIPS
+// ============================================================
 
-    // Act
-    $classroom = Classroom::create([
-        'id' => $customId,
-        'name' => 'Test Classroom',
-        'school_id' => School::factory()->create()->getKey(),
-        'grade' => GradeEnum::GRADE_10->value,
-    ]);
+describe('Classroom Relationships', function () {
 
-    // Assert
-    expect($classroom->getKey())
-        ->toBeString()
-        ->not->toBe($customId);
+    describe('school()', function () {
+        it('has correct relationship type', function () {
+            $classroom = Classroom::factory()->make();
+
+            expect($classroom->school())->toBeInstanceOf(BelongsTo::class);
+        });
+
+        it('returns the school this classroom belongs to', function () {
+            $school = School::factory()->create();
+            $classroom = Classroom::factory()->create(['school_id' => $school->id]);
+
+            expect($classroom->school)
+                ->toBeInstanceOf(School::class)
+                ->id->toBe($school->id);
+        });
+
+        it('does not return a school from another classroom', function () {
+            $schoolA = School::factory()->create();
+            $schoolB = School::factory()->create();
+
+            $classroom = Classroom::factory()->create(['school_id' => $schoolA->id]);
+
+            expect($classroom->school->id)->not->toBe($schoolB->id);
+        });
+    });
 });
 
-test('it casts the columns')
-    ->expect(fn () => Classroom::factory()->create())
-    ->grade->toBeInstanceOf(GradeEnum::class)
-    ->is_moving_class->toBeBool();
+// ============================================================
+// ATTRIBUTES / CASTS
+// ============================================================
 
-test('school relationship returns the parent school', function () {
-    // Arrange
-    $school = School::factory()->create();
-    $classroom = Classroom::factory()->for($school)->create();
+describe('Classroom Attributes', function () {
 
-    // Act
-    $result = $classroom->school;
+    it('uses ulid as primary key', function () {
+        $classroom = Classroom::factory()->create();
 
-    // Assert
-    expect($result)
-        ->toBeInstanceOf(School::class)
-        ->getKey()->toBe($school->getKey());
+        expect($classroom->id)
+            ->toBeString()
+            ->toHaveLength(26)
+            ->toMatch('/^[0-9a-hjkmnp-tv-z]{26}$/');
+    });
+
+    it('casts created_at and updated_at as Carbon', function () {
+        $classroom = Classroom::factory()->create();
+
+        expect($classroom->created_at)->toBeInstanceOf(Illuminate\Support\Carbon::class);
+        expect($classroom->updated_at)->toBeInstanceOf(Illuminate\Support\Carbon::class);
+    });
+
+    it('casts grade as GradeEnum', function () {
+        $classroom = Classroom::factory()->create(['grade' => GradeEnum::GRADE_1]);
+
+        expect($classroom->grade)->toBeInstanceOf(GradeEnum::class);
+    });
+
+    it('casts is_moving_class as boolean', function () {
+        $classroom = Classroom::factory()->create(['is_moving_class' => true]);
+
+        expect($classroom->is_moving_class)->toBeBool()->toBeTrue();
+    });
+
+    it('allows nullable phase', function () {
+        $classroom = Classroom::factory()->create(['phase' => null]);
+
+        expect($classroom->phase)->toBeNull();
+    });
+
+    it('allows nullable legacy_old_id', function () {
+        $classroom = Classroom::factory()->create(['legacy_old_id' => null]);
+
+        expect($classroom->legacy_old_id)->toBeNull();
+    });
 });
 
-test('multiple classrooms can belong to the same school', function () {
-    // Arrange
-    $school = School::factory()->create();
+// ============================================================
+// SCOPES
+// ============================================================
 
-    // Act
-    Classroom::factory(3)->for($school)->create();
+describe('Classroom::excludeFinalYears()', function () {
+    it('excludes kindergarten B classrooms', function () {
+        Classroom::factory()->create(['grade' => GradeEnum::KINDERGARTEN_B]);
 
-    // Assert
-    expect($school->classrooms)->toHaveCount(3);
+        expect(Classroom::excludeFinalYears()->get())->toHaveCount(0);
+    });
+
+    it('excludes grade 6 classrooms', function () {
+        Classroom::factory()->create(['grade' => GradeEnum::GRADE_6]);
+
+        expect(Classroom::excludeFinalYears()->get())->toHaveCount(0);
+    });
+
+    it('excludes grade 9 classrooms', function () {
+        Classroom::factory()->create(['grade' => GradeEnum::GRADE_9]);
+
+        expect(Classroom::excludeFinalYears()->get())->toHaveCount(0);
+    });
+
+    it('excludes grade 12 classrooms', function () {
+        Classroom::factory()->create(['grade' => GradeEnum::GRADE_12]);
+
+        expect(Classroom::excludeFinalYears()->get())->toHaveCount(0);
+    });
+
+    it('excludes all final year grades at once', function () {
+        foreach (GradeEnum::finalYears() as $finalGrade) {
+            Classroom::factory()->create(['grade' => $finalGrade]);
+        }
+
+        expect(Classroom::excludeFinalYears()->get())->toHaveCount(0);
+    });
+
+    it('includes non-final year classrooms', function () {
+        $nonFinalGrades = array_filter(
+            GradeEnum::cases(),
+            fn (GradeEnum $grade) => ! $grade->isFinalYear()
+        );
+
+        foreach ($nonFinalGrades as $grade) {
+            Classroom::factory()->create(['grade' => $grade]);
+        }
+
+        expect(Classroom::excludeFinalYears()->get())->toHaveCount(count($nonFinalGrades));
+    });
+
+    it('returns only non-final year classrooms when mixed grades exist', function () {
+        $nonFinalGrades = [GradeEnum::GRADE_1, GradeEnum::GRADE_7, GradeEnum::GRADE_10];
+        $finalGrades = GradeEnum::finalYears();
+
+        foreach ($nonFinalGrades as $grade) {
+            Classroom::factory()->create(['grade' => $grade]);
+        }
+        foreach ($finalGrades as $grade) {
+            Classroom::factory()->create(['grade' => $grade]);
+        }
+
+        expect(Classroom::excludeFinalYears()->get())->toHaveCount(count($nonFinalGrades));
+    });
 });

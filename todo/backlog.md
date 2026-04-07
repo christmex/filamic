@@ -5,6 +5,7 @@
 - [x] buat jadi action baru untuk toggle expand table
 - [ ] add a missing data inside metadata, the key is warning and inside tht maybe a json/array the list of the problem/warnings
 - [ ] buat global scope auto apply untuk filter only active student
+- [ ] GradeEnum::forLevel refactor ini, soalnya udh di pakai di multi tempat
 
 ## SupplyHub Follow-ups
 

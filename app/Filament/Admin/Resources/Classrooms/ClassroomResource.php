@@ -7,9 +7,7 @@ namespace App\Filament\Admin\Resources\Classrooms;
 use App\Filament\Admin\Resources\Classrooms\Pages\CreateClassroom;
 use App\Filament\Admin\Resources\Classrooms\Pages\EditClassroom;
 use App\Filament\Admin\Resources\Classrooms\Pages\ListClassrooms;
-use App\Filament\Admin\Resources\Classrooms\Pages\ViewClassroom;
 use App\Filament\Admin\Resources\Classrooms\Schemas\ClassroomForm;
-use App\Filament\Admin\Resources\Classrooms\Schemas\ClassroomInfolist;
 use App\Filament\Admin\Resources\Classrooms\Tables\ClassroomsTable;
 use App\Models\Classroom;
 use BackedEnum;
@@ -38,17 +36,11 @@ class ClassroomResource extends Resource
         return ClassroomsTable::configure($table);
     }
 
-    public static function infolist(Schema $schema): Schema
-    {
-        return ClassroomInfolist::configure($schema);
-    }
-
     public static function getPages(): array
     {
         return [
             'index' => ListClassrooms::route('/'),
             'create' => CreateClassroom::route('/create'),
-            'view' => ViewClassroom::route('/{record}'),
             'edit' => EditClassroom::route('/{record}/edit'),
         ];
     }

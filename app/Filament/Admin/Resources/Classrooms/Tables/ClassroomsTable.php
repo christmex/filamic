@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\Classrooms\Tables;
 
-use Filament\Actions\ViewAction;
+use Christmex\FilamentToggleTableGroupAction\Actions\ToggleTableGroupAction;
+use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 
 class ClassroomsTable
@@ -16,10 +18,19 @@ class ClassroomsTable
     public static function configure(Table $table): Table
     {
         return $table
-            // ->defaultGroup('school.name')
+            ->defaultGroup('school.name')
+            ->recordUrl(null)
+            ->paginationPageOptions(['all'])
+            ->groups([
+                Group::make('school.name')
+                    ->collapsible()
+                    ->label('Sekolah'),
+            ])
+            ->collapsedGroupsByDefault()
+            ->toolbarActions([
+                ToggleTableGroupAction::make(),
+            ])
             ->columns([
-                TextColumn::make('school.name')
-                    ->searchable(),
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('grade')
@@ -36,16 +47,15 @@ class ClassroomsTable
 
                 SelectFilter::make('is_moving_class')
                     ->label('Moving Class')
-                    ->columnSpanFull()
                     ->options([
                         true => 'Yes',
                         false => 'No',
                     ]),
             ])
-            ->filtersLayout(FiltersLayout::Modal)
+            ->filtersLayout(FiltersLayout::AboveContent)
             ->filtersFormColumns(2)
             ->recordActions([
-                ViewAction::make(),
+                EditAction::make(),
             ]);
     }
 }

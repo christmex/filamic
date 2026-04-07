@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Admin\Resources\Classrooms\Schemas;
 
 use App\Enums\GradeEnum;
+use App\Models\Classroom;
 use App\Models\School;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Hidden;
@@ -14,6 +15,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Validation\Rules\Unique;
 
 class ClassroomForm
 {
@@ -27,6 +29,11 @@ class ClassroomForm
                         Select::make('school_id')
                             ->relationship('school', 'name')
                             ->live()
+                            ->afterStateHydrated(function (Set $set, $state) {
+                                $school = School::find($state);
+
+                                $set('temp_level', $school?->level->value ?? null);
+                            })
                             ->afterStateUpdated(function (Set $set, $state) {
                                 $school = School::find($state);
 
@@ -52,7 +59,13 @@ class ClassroomForm
                             ->required(),
                         TextInput::make('name')
                             ->required()
-                            ->placeholder('Example: Matthew 1'),
+                            ->placeholder('Example: Matthew 1')
+                            ->unique(
+                                table: Classroom::class,
+                                column: 'name',
+                                modifyRuleUsing: fn (Unique $rule, callable $get) => $rule->where('school_id', $get('school_id')),
+                                ignoreRecord: true
+                            ),
                         TextInput::make('phase')
                             ->placeholder('Example: A|B|C|D'),
                         Checkbox::make('is_moving_class')
