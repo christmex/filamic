@@ -22,10 +22,10 @@
         "spatie/laravel-ray": "^1.41"
     },
     "require-dev": {
-        "barryvdh/laravel-debugbar": "^3.16",
         "barryvdh/laravel-ide-helper": "^3.6",
         "fakerphp/faker": "^1.23",
         "filament/upgrade": "^5.0",
+        "fruitcake/laravel-debugbar": "^3.16",
         "larastan/larastan": "^3.0",
         "laravel/boost": "^2.1",
         "laravel/pail": "^1.2.2",
