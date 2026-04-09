@@ -1,5 +1,4 @@
 @use('App\Filament\Finance\Resources\Students\Pages\EditStudent')
-@use('App\Enums\InvoiceTypeEnum')
 <div>
     <!-- Header -->
     <div class="flex items-start justify-between">
@@ -59,30 +58,6 @@
             </div>
         </div>
     @endif
-
-    <!-- Virtual Accounts -->
-    <div class="mt-5 grid grid-cols-2 gap-4">
-        <div class="rounded-lg border border-blue-500 bg-blue-100 p-3  dark:border-blue/5 dark:bg-[#18181b]">
-            <div class="mb-1 flex items-center gap-1.5 text-xs font-medium text-blue-500">
-                <x-dynamic-component :component="InvoiceTypeEnum::MONTHLY_FEE->getIcon()" width="14"
-                    height="14"></x-dynamic-component>
-                <span>VA {{ InvoiceTypeEnum::MONTHLY_FEE->getShortLabel() }}</span>
-            </div>
-            <p class="font-mono text-xs font-medium text-gray-900 dark:text-gray-200">
-                {{ $getRecord()->monthly_fee_virtual_account ?? '-' }}
-            </p>
-        </div>
-        <div class="rounded-lg border border-orange-500 bg-orange-100 p-3  dark:border-orange/5 dark:bg-[#18181b]">
-            <div class="mb-1 flex items-center gap-1.5 text-xs font-medium text-orange-500">
-                <x-dynamic-component :component="InvoiceTypeEnum::BOOK_FEE->getIcon()" width="14"
-                    height="14"></x-dynamic-component>
-                <span>VA {{ InvoiceTypeEnum::BOOK_FEE->getShortLabel() }}</span>
-            </div>
-            <p class="font-mono text-xs font-medium text-gray-900 dark:text-gray-200">
-                {{ $getRecord()->book_fee_virtual_account ?? '-' }}
-            </p>
-        </div>
-    </div>
 
     @if (!$getRecord()->hasUnpaidInvoice())
         {{-- <div

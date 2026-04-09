@@ -12,17 +12,22 @@ use App\Services\BookFeeService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Lorisleiva\Actions\Concerns\AsAction;
+use RuntimeException;
 
 class GenerateBookFeeInvoice
 {
     use AsAction;
 
     public function __construct(
+        // @phpstan-ignore property.onlyWritten (used below the guard; restore when student_payment_accounts is implemented)
         private readonly BookFeeService $bookFeeService
     ) {}
 
     public function handle(Branch $branch, array $data): ?array
     {
+        // TODO: Remove this guard and implement student_payment_accounts lookup when that table is built.
+        throw new RuntimeException('Invoice generation is disabled: student payment accounts are not yet implemented.');
+        // @phpstan-ignore-next-line deadCode.unreachable (intentionally preserved — implementation to be restored when student_payment_accounts is built)
         $validated = Validator::make($data, [
             'issued_at' => ['required', 'date'],
             'due_date' => ['required', 'date', 'after:issued_at'],

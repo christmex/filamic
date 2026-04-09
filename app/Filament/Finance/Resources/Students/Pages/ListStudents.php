@@ -352,9 +352,9 @@ class ListStudents extends ListRecords
                 ->badge(fn () => Student::count()),
             'active' => Tab::make()
                 ->label('Aktif')
-                ->modifyQueryUsing(fn (Builder | Student $query) => $query->active()->hasNoProblems())
+                ->modifyQueryUsing(fn (Builder | Student $query) => $query->active())
                 ->icon('tabler-user-check')
-                ->badge(fn () => Student::active()->hasNoProblems()->count()),
+                ->badge(fn () => Student::active()->count()),
             'inactive' => Tab::make()
                 ->label('Tidak Aktif')
                 ->modifyQueryUsing(fn (Builder | Student $query) => $query->inActive())

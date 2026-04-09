@@ -40,27 +40,27 @@ class StudentFactory extends Factory
             'birth_date' => $this->faker->date(),
             'nisn' => $this->faker->unique()->numerify('##########'),
             'nis' => $this->faker->numerify('#####'),
-
-            'monthly_fee_virtual_account' => fake()->unique()->numerify('########'),
-            'book_fee_virtual_account' => fake()->unique()->numerify('########'),
-            'monthly_fee_amount' => fake()->numberBetween(100_000, 500_000),
-            'book_fee_amount' => fake()->numberBetween(50_000, 200_000),
+            // monthly_fee_virtual_account, book_fee_virtual_account,
+            // monthly_fee_amount, book_fee_amount removed from students table.
+            // TODO: Restore payment account states when student_payment_accounts table is implemented.
         ];
     }
 
-    public function withoutMonthlyFee(): static
-    {
-        return $this->state([
-            'monthly_fee_virtual_account' => null,
-            'monthly_fee_amount' => 0,
-        ]);
-    }
+    // TODO: Restore when student_payment_accounts table is implemented.
+    // public function withoutMonthlyFee(): static
+    // {
+    //     return $this->state([
+    //         'monthly_fee_virtual_account' => null,
+    //         'monthly_fee_amount' => 0,
+    //     ]);
+    // }
 
-    public function withoutBookFee(): static
-    {
-        return $this->state([
-            'book_fee_virtual_account' => null,
-            'book_fee_amount' => 0,
-        ]);
-    }
+    // TODO: Restore when student_payment_accounts table is implemented.
+    // public function withoutBookFee(): static
+    // {
+    //     return $this->state([
+    //         'book_fee_virtual_account' => null,
+    //         'book_fee_amount' => 0,
+    //     ]);
+    // }
 }

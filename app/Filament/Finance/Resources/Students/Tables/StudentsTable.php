@@ -59,7 +59,7 @@ class StudentsTable
             ])
             ->paginated([8, 16, 32, 64])
             ->recordUrl(null)
-            ->searchPlaceholder('Cari Nama Peserta Didik | Nomor VA')
+            ->searchPlaceholder('Cari Nama Peserta Didik')
             ->columns([
                 View::make('filament.finance.resources.students.tables.column')
                     ->components([
@@ -67,10 +67,6 @@ class StudentsTable
                             ->label('Nama')
                             ->searchable()
                             ->sortable(),
-                        TextColumn::make('payment_account')
-                            ->label('Nomor Virtual Account')
-                            ->searchable(query: fn (Builder $query, string $search): Builder => $query->where('monthly_fee_virtual_account', 'like', "%{$search}%")
-                                ->orWhere('book_fee_virtual_account', 'like', "%{$search}%")),
                     ]),
             ])
             ->filters([

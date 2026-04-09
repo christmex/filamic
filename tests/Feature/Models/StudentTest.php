@@ -19,15 +19,11 @@ it('casts the columns')
     ->status_in_family->toBeInstanceOf(StatusInFamilyEnum::class)
     ->religion->toBeInstanceOf(ReligionEnum::class);
 
-it('syncActiveStatus activates student when active enrollment and monthly fee data exist', function () {
+it('syncActiveStatus activates student when active enrollment exists', function () {
     // Arrange
     $activeYear = SchoolYear::factory()->active()->create();
     $school = School::factory()->create();
-    $student = Student::factory()->for($school)->create([
-        'is_active' => false,
-        'monthly_fee_virtual_account' => '12345678',
-        'monthly_fee_amount' => 250_000,
-    ]);
+    $student = Student::factory()->for($school)->create(['is_active' => false]);
     $classroom = Classroom::factory()->for($school)->create();
 
     StudentEnrollment::factory()->create([
@@ -49,28 +45,7 @@ it('syncActiveStatus deactivates student when no active enrollment exists', func
     SchoolYear::factory()->active()->create();
     $student = Student::factory()->create(['is_active' => true]);
 
-    // Act — no active enrollment
-    $student->syncActiveStatus();
-
-    // Assert
-    expect($student->refresh()->is_active)->toBeFalse();
-});
-
-it('syncActiveStatus deactivates student when enrollment exists but no monthly fee data', function () {
-    // Arrange
-    $activeYear = SchoolYear::factory()->active()->create();
-    $school = School::factory()->create();
-    $student = Student::factory()->for($school)->withoutMonthlyFee()->create(['is_active' => true]);
-    $classroom = Classroom::factory()->for($school)->create();
-
-    StudentEnrollment::factory()->create([
-        'classroom_id' => $classroom->getKey(),
-        'school_year_id' => $activeYear->getKey(),
-        'student_id' => $student->getKey(),
-        'status' => StudentEnrollmentStatusEnum::ENROLLED,
-    ]);
-
-    // Act — no monthly fee data
+    // Act — no enrollment at all
     $student->syncActiveStatus();
 
     // Assert
@@ -85,8 +60,35 @@ it('syncActiveStatus deactivates student when no active school year exists', fun
     // Act
     $student->syncActiveStatus();
 
-    // Assert — no active year means no currentEnrollment
+    // Assert — no active year means currentEnrollment scope returns nothing
     expect($student->refresh()->is_active)->toBeFalse();
+});
+
+it('syncActiveStatus syncs branch, school, and classroom from enrollment', function () {
+    // Arrange
+    $activeYear = SchoolYear::factory()->active()->create();
+    $school = School::factory()->create();
+    $student = Student::factory()->for($school)->create([
+        'is_active' => false,
+        'classroom_id' => null,
+    ]);
+    $classroom = Classroom::factory()->for($school)->create();
+
+    StudentEnrollment::factory()->create([
+        'classroom_id' => $classroom->getKey(),
+        'school_year_id' => $activeYear->getKey(),
+        'student_id' => $student->getKey(),
+        'status' => StudentEnrollmentStatusEnum::ENROLLED,
+    ]);
+
+    // Act
+    $student->syncActiveStatus();
+
+    // Assert
+    $student->refresh();
+    expect($student->is_active)->toBeTrue()
+        ->and($student->classroom_id)->toBe($classroom->getKey())
+        ->and($student->school_id)->toBe($school->getKey());
 });
 
 it('unpaidMonthlyFee returns unpaid monthly fee invoices', function () {

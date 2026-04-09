@@ -196,3 +196,86 @@ test('it belongs to a student', function () {
         ->toBeInstanceOf(Student::class)
         ->getKey()->toBe($student->getKey());
 });
+
+it('saved hook activates student when ENROLLED enrollment is created in active year', function () {
+    // Arrange
+    $activeYear = SchoolYear::factory()->active()->create();
+    $school = School::factory()->create();
+    $student = Student::factory()->for($school)->create(['is_active' => false]);
+    $classroom = Classroom::factory()->for($school)->create();
+
+    // Act
+    StudentEnrollment::factory()->create([
+        'student_id' => $student->getKey(),
+        'school_year_id' => $activeYear->getKey(),
+        'classroom_id' => $classroom->getKey(),
+        'status' => StudentEnrollmentStatusEnum::ENROLLED,
+    ]);
+
+    // Assert
+    expect($student->refresh()->is_active)->toBeTrue();
+});
+
+it('saved hook keeps student inactive when enrollment is created with DRAFT status', function () {
+    // Arrange — DRAFT is status=1, the DB default; it must NOT activate the student
+    $activeYear = SchoolYear::factory()->active()->create();
+    $school = School::factory()->create();
+    $student = Student::factory()->for($school)->create(['is_active' => false]);
+    $classroom = Classroom::factory()->for($school)->create();
+
+    // Act
+    StudentEnrollment::factory()->create([
+        'student_id' => $student->getKey(),
+        'school_year_id' => $activeYear->getKey(),
+        'classroom_id' => $classroom->getKey(),
+        'status' => StudentEnrollmentStatusEnum::DRAFT,
+    ]);
+
+    // Assert
+    expect($student->refresh()->is_active)->toBeFalse();
+});
+
+it('saved hook deactivates student when active enrollment is changed to inactive status', function () {
+    // Arrange
+    $activeYear = SchoolYear::factory()->active()->create();
+    $school = School::factory()->create();
+    $student = Student::factory()->for($school)->create(['is_active' => false]);
+    $classroom = Classroom::factory()->for($school)->create();
+
+    $enrollment = StudentEnrollment::factory()->create([
+        'student_id' => $student->getKey(),
+        'school_year_id' => $activeYear->getKey(),
+        'classroom_id' => $classroom->getKey(),
+        'status' => StudentEnrollmentStatusEnum::ENROLLED,
+    ]);
+
+    expect($student->refresh()->is_active)->toBeTrue(); // precondition
+
+    // Act
+    $enrollment->update(['status' => StudentEnrollmentStatusEnum::INACTIVE]);
+
+    // Assert
+    expect($student->refresh()->is_active)->toBeFalse();
+});
+
+it('saved hook syncs student branch, school and classroom from enrollment', function () {
+    // Arrange
+    $activeYear = SchoolYear::factory()->active()->create();
+    $school = School::factory()->create();
+    $student = Student::factory()->for($school)->create(['is_active' => false]);
+    $classroom = Classroom::factory()->for($school)->create();
+
+    // Act
+    StudentEnrollment::factory()->create([
+        'student_id' => $student->getKey(),
+        'school_year_id' => $activeYear->getKey(),
+        'classroom_id' => $classroom->getKey(),
+        'status' => StudentEnrollmentStatusEnum::ENROLLED,
+    ]);
+
+    // Assert
+    $student->refresh();
+    expect($student->classroom_id)->toBe($classroom->getKey())
+        ->and($student->school_id)->toBe($school->getKey())
+        ->and($student->branch_id)->toBe($school->branch_id);
+});

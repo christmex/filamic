@@ -258,12 +258,13 @@ class MigrateLegacyData extends Command
             return;
         }
 
-        $student->updateQuietly([
-            'monthly_fee_virtual_account' => $latest->spp_va,
-            'book_fee_virtual_account' => $latest->book_va,
-            'monthly_fee_amount' => $latest->spp_cost ?? 0,
-            'book_fee_amount' => $latest->book_cost ?? 0,
-        ]);
+        // TODO: Restore when student_payment_accounts table is implemented.
+        // $student->updateQuietly([
+        //     'monthly_fee_virtual_account' => $latest->spp_va,
+        //     'book_fee_virtual_account' => $latest->book_va,
+        //     'monthly_fee_amount' => $latest->spp_cost ?? 0,
+        //     'book_fee_amount' => $latest->book_cost ?? 0,
+        // ]);
     }
 
     private function migrateStudentBills(Collection $legacyStudents): void

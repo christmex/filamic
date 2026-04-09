@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Finance\Resources\Students\RelationManagers;
 
+use App\Enums\StudentEnrollmentStatusEnum;
 use App\Models\Classroom;
 use App\Models\SchoolYear;
 use App\Models\Student;
@@ -90,6 +91,7 @@ class EnrollmentsRelationManager extends RelationManager
                     ->hidden(fn () => $this->getOwnerRecord()->isActive())
                     ->mutateDataUsing(function (array $data): array {
                         $data['branch_id'] = Filament::getTenant()->getKey();
+                        $data['status'] = StudentEnrollmentStatusEnum::ENROLLED;
 
                         return $data;
                     }),

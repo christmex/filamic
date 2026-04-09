@@ -9,6 +9,7 @@ use App\Models\Student;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Lorisleiva\Actions\Concerns\AsAction;
+use RuntimeException;
 
 class GenerateBulkMonthlyFeeInvoice
 {
@@ -16,6 +17,9 @@ class GenerateBulkMonthlyFeeInvoice
 
     public function handle(array $data, Student $student): int
     {
+        // TODO: Remove this guard and implement student_payment_accounts lookup when that table is built.
+        throw new RuntimeException('Invoice generation is disabled: student payment accounts are not yet implemented.');
+        // @phpstan-ignore-next-line deadCode.unreachable (intentionally preserved — implementation to be restored when student_payment_accounts is built)
         $validated = Validator::make($data, [
             'month' => ['required', 'array'],
             'month.*' => ['required', 'integer', 'min:1', 'max:12'],

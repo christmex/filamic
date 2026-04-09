@@ -32,6 +32,20 @@ abstract class TestCase extends BaseTestCase
         $this->login($user);
     }
 
+    public function loginFinance(?User $user = null, ?Branch $branch = null): Branch
+    {
+        $branch ??= Branch::factory()->create();
+        $user ??= User::factory()->create();
+        $branch->users()->attach($user->getKey());
+
+        $this->actingAs($user);
+        Filament::setCurrentPanel('finance');
+        Filament::getPanel('finance')->boot();
+        Filament::setTenant($branch);
+
+        return $branch;
+    }
+
     public function loginSupplyHub(?User $user = null, ?Branch $branch = null): Branch
     {
         $branch ??= Branch::factory()->create();
