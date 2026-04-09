@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Filament\Admin\Resources\Positions\Pages\ManagePositions;
 use App\Filament\Admin\Resources\Positions\PositionResource;
 use App\Models\Position;
+use Filament\Actions\Testing\TestAction;
 use Livewire\Livewire;
 
 beforeEach(fn () => $this->loginAdmin());
@@ -55,7 +56,7 @@ test('can edit a record', function () {
 
     // Act
     Livewire::test(ManagePositions::class)
-        ->mountTableAction('edit', $record)
+        ->mountAction(TestAction::make('edit')->table($record))
         ->fillForm([
             'name' => 'Updated Name',
         ])
@@ -73,7 +74,7 @@ test('can delete a record', function () {
 
     // Act
     Livewire::test(ManagePositions::class)
-        ->callTableAction('delete', $record);
+        ->callAction(TestAction::make('delete')->table($record));
 
     // Assert
     expect(Position::count())->toBe(0);
