@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Filamic ERD — Current + Planned</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; }
+  .controls { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #1e293b; border-bottom: 1px solid #334155; padding: 12px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .controls h1 { font-size: 16px; font-weight: 600; color: #f8fafc; }
+  .controls .legend { display: flex; gap: 12px; margin-left: auto; font-size: 12px; }
+  .legend span { display: flex; align-items: center; gap: 4px; }
+  .legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .dot.current { background: #3b82f6; }
+  .dot.new { background: #22c55e; }
+  .dot.modified { background: #f59e0b; }
+  .tabs { display: flex; gap: 4px; }
+  .tabs button { background: #334155; border: none; color: #94a3b8; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+  .tabs button:hover { background: #475569; color: #e2e8f0; }
+  .tabs button.active { background: #3b82f6; color: white; }
+  .diagram-container { padding-top: 70px; width: 100%; overflow: auto; }
+  .mermaid { padding: 24px; display: flex; justify-content: center; }
+  .mermaid svg { max-width: none !important; }
+  .info { position: fixed; bottom: 16px; right: 16px; background: #1e293b; border: 1px solid #334155; padding: 10px 16px; border-radius: 8px; font-size: 12px; color: #94a3b8; }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <h1>Filamic ERD</h1>
+  <div class="tabs">
+    <button class="active" onclick="showDiagram('all')">All Tables</button>
+    <button onclick="showDiagram('core')">Core & Academic</button>
+    <button onclick="showDiagram('finance')">Finance</button>
+    <button onclick="showDiagram('supply')">SupplyHub</button>
+  </div>
+  <div class="legend">
+    <span><span class="dot current"></span> Current</span>
+    <span><span class="dot new"></span> New (planned)</span>
+    <span><span class="dot modified"></span> Modified</span>
+  </div>
+</div>
+
+<div class="diagram-container">
+  <pre class="mermaid" id="diagram-all">
+erDiagram
+    %% ============ CORE & TENANCY ============
+    branches {
+        ulid id PK
+        string name
+        string phone
+        string whatsapp
+        string address
+    }
+
+    users {
+        ulid id PK
+        string name
+        string email
+        string password
+    }
+
+    branch_user {
+        ulid branch_id FK
+        ulid user_id FK
+    }
+
+    positions {
+        ulid id PK
+        string title
+        string description
+    }
+
+    %% ============ ACADEMIC ============
+    schools {
+        ulid id PK
+        ulid branch_id FK
+        string name
+        string code
+    }
+
+    school_years {
+        ulid id PK
+        int start_year
+        int end_year
+        date start_date
+        date end_date
+        bool is_active
+    }
+
+    school_terms {
+        ulid id PK
+        ulid school_year_id FK
+        string name
+        date start_date
+        date end_date
+        bool is_active
+    }
+
+    classrooms {
+        ulid id PK
+        ulid school_id FK
+        string name
+        int grade
+    }
+
+    curricula {
+        ulid id PK
+        string name
+        string code
+        bool is_active
+    }
+
+    subject_categories {
+        ulid id PK
+        ulid school_id FK
+        ulid parent_id FK "NEW nullable self-ref"
+        string name
+    }
+
+    subjects {
+        ulid id PK
+        ulid subject_category_id FK
+        string name
+        int sort_order
+    }
+
+    learning_groups {
+        ulid id PK
+        ulid school_id FK
+        ulid school_year_id FK "NEW"
+        ulid subject_id FK "NEW nullable"
+        string name
+        text description "NEW"
+    }
+
+    student_learning_group {
+        ulid learning_group_id FK
+        ulid student_id FK
+    }
+
+    %% ============ STUDENTS ============
+    students {
+        ulid id PK
+        ulid branch_id FK
+        ulid school_id FK
+        ulid classroom_id FK
+        string name
+        string nisn
+        int gender
+        bool is_active
+        string notes
+    }
+
+    student_enrollments {
+        ulid id PK
+        ulid branch_id FK
+        ulid school_id FK
+        ulid classroom_id FK
+        ulid school_year_id FK
+        ulid student_id FK
+        int status
+        date enrolled_at "NEW"
+        date graduated_at "NEW"
+        ulid transfer_from_enrollment_id "NEW nullable"
+        text transfer_notes "NEW"
+    }
+
+    %% ============ FINANCE — NEW TABLES ============
+    fee_types {
+        ulid id PK "NEW TABLE"
+        string name
+        string code
+        bool is_recurring
+        int fine_daily_rate
+        int fine_cutoff_day
+        bool is_active
+        int sort_order
+    }
+
+    fee_schedules {
+        ulid id PK "NEW TABLE"
+        ulid fee_type_id FK
+        ulid school_id FK
+        int grade
+        ulid school_year_id FK
+        int amount
+        bool is_active
+    }
+
+    student_fee_overrides {
+        ulid id PK "NEW TABLE"
+        ulid student_id FK
+        ulid fee_type_id FK
+        ulid school_year_id FK
+        int override_type
+        int override_value
+        string reason
+    }
+
+    student_virtual_accounts {
+        ulid id PK "NEW TABLE"
+        ulid student_id FK
+        ulid branch_id FK
+        string virtual_account_number
+        bool is_active
+    }
+
+    invoices {
+        ulid id PK
+        ulid branch_id FK
+        ulid school_id FK
+        ulid classroom_id FK
+        ulid school_year_id FK
+        ulid student_id FK
+        ulid fee_type_id FK "NEW replaces type"
+        int month
+        string reference_number
+        string fingerprint
+        int amount
+        int fine
+        int discount
+        int total_amount
+        int status
+        datetime paid_at
+    }
+
+    payments {
+        ulid id PK "NEW TABLE"
+        ulid branch_id FK
+        ulid student_id FK
+        string reference_number
+        int payment_method
+        int amount
+        string gateway_reference
+        datetime paid_at
+    }
+
+    invoice_payment {
+        ulid payment_id FK "NEW TABLE"
+        ulid invoice_id FK
+        int amount_applied
+        int fine_applied
+        int discount_applied
+    }
+
+    %% ============ SUPPLYHUB ============
+    suppliers {
+        ulid id PK
+        string name
+        string contact_person
+        string phone
+    }
+
+    product_categories {
+        ulid id PK
+        string name
+        string code
+    }
+
+    product_variations {
+        ulid id PK
+        ulid product_category_id FK
+        string name
+        int sort_order
+    }
+
+    product_variation_options {
+        ulid id PK
+        ulid product_variation_id FK
+        string name
+        int sort_order
+    }
+
+    products {
+        ulid id PK
+        ulid supplier_id FK
+        ulid product_category_id FK
+        string name
+        string code
+    }
+
+    product_items {
+        ulid id PK
+        ulid product_id FK
+        string sku
+        int purchase_price
+        int sale_price
+    }
+
+    product_configurations {
+        ulid product_item_id FK
+        ulid product_variation_option_id FK
+    }
+
+    product_stocks {
+        ulid id PK
+        ulid product_item_id FK
+        ulid branch_id FK
+        int quantity
+    }
+
+    product_stock_movements {
+        ulid id PK
+        ulid product_stock_id FK
+        ulid branch_id FK
+        int type
+        int quantity
+        text notes
+    }
+
+    orders {
+        ulid id PK
+        ulid supplier_id FK
+        ulid school_year_id FK
+        date ordered_at
+        int status
+    }
+
+    order_items {
+        ulid id PK
+        ulid order_id FK
+        ulid product_item_id FK
+        int quantity
+        int old_price
+        int new_price
+    }
+
+    %% ============ CMS ============
+    gallery_categories {
+        ulid id PK
+        string name
+        string slug
+    }
+
+    galleries {
+        ulid id PK
+        ulid gallery_category_id FK
+        ulid school_id FK
+        string title
+    }
+
+    school_events {
+        ulid id PK
+        ulid school_id FK
+        string title
+        date start_date
+        date end_date
+    }
+
+    %% ============ RELATIONSHIPS ============
+
+    %% Core
+    branches ||--o{ schools : has
+    branches ||--o{ branch_user : ""
+    users ||--o{ branch_user : ""
+
+    %% Academic
+    schools ||--o{ classrooms : has
+    schools ||--o{ subject_categories : has
+    school_years ||--o{ school_terms : has
+    subject_categories ||--o{ subjects : has
+    subject_categories ||--o{ subject_categories : "parent-child"
+    schools ||--o{ learning_groups : has
+    school_years ||--o{ learning_groups : "year-scoped"
+    subjects ||--o{ learning_groups : "optional link"
+
+    %% Students
+    classrooms ||--o{ students : "current"
+    schools ||--o{ students : belongs
+    branches ||--o{ students : belongs
+    students ||--o{ student_enrollments : has
+    classrooms ||--o{ student_enrollments : ""
+    school_years ||--o{ student_enrollments : ""
+    schools ||--o{ student_enrollments : ""
+    branches ||--o{ student_enrollments : ""
+    student_enrollments ||--o| student_enrollments : "transfer from"
+    students ||--o{ student_learning_group : ""
+    learning_groups ||--o{ student_learning_group : ""
+
+    %% Finance — New
+    fee_types ||--o{ fee_schedules : has
+    schools ||--o{ fee_schedules : ""
+    school_years ||--o{ fee_schedules : ""
+    fee_types ||--o{ student_fee_overrides : ""
+    students ||--o{ student_fee_overrides : ""
+    school_years ||--o{ student_fee_overrides : ""
+    students ||--o{ student_virtual_accounts : ""
+    branches ||--o{ student_virtual_accounts : ""
+
+    %% Finance — Invoices & Payments
+    fee_types ||--o{ invoices : "replaces type enum"
+    students ||--o{ invoices : has
+    branches ||--o{ invoices : ""
+    school_years ||--o{ invoices : ""
+    students ||--o{ payments : has
+    branches ||--o{ payments : ""
+    payments ||--o{ invoice_payment : ""
+    invoices ||--o{ invoice_payment : ""
+
+    %% SupplyHub
+    suppliers ||--o{ products : has
+    product_categories ||--o{ products : has
+    product_categories ||--o{ product_variations : has
+    product_variations ||--o{ product_variation_options : has
+    products ||--o{ product_items : has
+    product_items ||--o{ product_configurations : ""
+    product_variation_options ||--o{ product_configurations : ""
+    product_items ||--o{ product_stocks : has
+    branches ||--o{ product_stocks : ""
+    product_stocks ||--o{ product_stock_movements : has
+    suppliers ||--o{ orders : has
+    school_years ||--o{ orders : ""
+    orders ||--o{ order_items : has
+    product_items ||--o{ order_items : ""
+
+    %% CMS
+    gallery_categories ||--o{ galleries : has
+    schools ||--o{ galleries : ""
+    schools ||--o{ school_events : has
+  </pre>
+
+  <pre class="mermaid" id="diagram-core" style="display:none">
+erDiagram
+    branches {
+        ulid id PK
+        string name
+        string phone
+        string address
+    }
+
+    users {
+        ulid id PK
+        string name
+        string email
+    }
+
+    branch_user {
+        ulid branch_id FK
+        ulid user_id FK
+    }
+
+    schools {
+        ulid id PK
+        ulid branch_id FK
+        string name
+        string code
+    }
+
+    school_years {
+        ulid id PK
+        int start_year
+        int end_year
+        bool is_active
+    }
+
+    school_terms {
+        ulid id PK
+        ulid school_year_id FK
+        string name
+        bool is_active
+    }
+
+    classrooms {
+        ulid id PK
+        ulid school_id FK
+        string name
+        int grade
+    }
+
+    subject_categories {
+        ulid id PK
+        ulid school_id FK
+        ulid parent_id FK "NEW self-ref"
+        string name
+    }
+
+    subjects {
+        ulid id PK
+        ulid subject_category_id FK
+        string name
+    }
+
+    learning_groups {
+        ulid id PK
+        ulid school_id FK
+        ulid school_year_id FK "NEW"
+        ulid subject_id FK "NEW"
+        string name
+    }
+
+    students {
+        ulid id PK
+        ulid branch_id FK
+        ulid school_id FK
+        ulid classroom_id FK
+        string name
+        string nisn
+        bool is_active
+    }
+
+    student_enrollments {
+        ulid id PK
+        ulid student_id FK
+        ulid classroom_id FK
+        ulid school_year_id FK
+        int status
+        date enrolled_at "NEW"
+        date graduated_at "NEW"
+        ulid transfer_from_enrollment_id "NEW"
+    }
+
+    student_learning_group {
+        ulid learning_group_id FK
+        ulid student_id FK
+    }
+
+    branches ||--o{ schools : has
+    branches ||--o{ branch_user : ""
+    users ||--o{ branch_user : ""
+    branches ||--o{ students : ""
+    schools ||--o{ classrooms : has
+    schools ||--o{ subject_categories : has
+    schools ||--o{ learning_groups : has
+    school_years ||--o{ school_terms : has
+    school_years ||--o{ learning_groups : "year-scoped"
+    subject_categories ||--o{ subjects : has
+    subject_categories ||--o{ subject_categories : "hierarchy"
+    subjects ||--o{ learning_groups : "optional"
+    classrooms ||--o{ students : "current"
+    students ||--o{ student_enrollments : has
+    classrooms ||--o{ student_enrollments : ""
+    school_years ||--o{ student_enrollments : ""
+    student_enrollments ||--o| student_enrollments : "transfer"
+    students ||--o{ student_learning_group : ""
+    learning_groups ||--o{ student_learning_group : ""
+  </pre>
+
+  <pre class="mermaid" id="diagram-finance" style="display:none">
+erDiagram
+    students {
+        ulid id PK
+        string name
+        string nisn
+        bool is_active
+    }
+
+    branches {
+        ulid id PK
+        string name
+    }
+
+    schools {
+        ulid id PK
+        string name
+    }
+
+    school_years {
+        ulid id PK
+        int start_year
+        bool is_active
+    }
+
+    fee_types {
+        ulid id PK "NEW TABLE"
+        string name "SPP Buku etc"
+        string code "unique slug"
+        bool is_recurring
+        int fine_daily_rate "Rp per day"
+        int fine_cutoff_day "1-28"
+        bool is_active
+        int sort_order
+    }
+
+    fee_schedules {
+        ulid id PK "NEW TABLE"
+        ulid fee_type_id FK
+        ulid school_id FK
+        int grade "GradeEnum"
+        ulid school_year_id FK
+        int amount "base IDR"
+        bool is_active
+    }
+
+    student_fee_overrides {
+        ulid id PK "NEW TABLE"
+        ulid student_id FK
+        ulid fee_type_id FK
+        ulid school_year_id FK
+        int override_type "pct-fixed-full"
+        int override_value
+        string reason "scholarship etc"
+    }
+
+    student_virtual_accounts {
+        ulid id PK "NEW TABLE"
+        ulid student_id FK
+        ulid branch_id FK
+        string virtual_account_number "unique"
+        bool is_active
+    }
+
+    invoices {
+        ulid id PK
+        ulid branch_id FK
+        ulid student_id FK
+        ulid school_year_id FK
+        ulid fee_type_id FK "NEW replaces type"
+        int month "nullable"
+        string reference_number
+        string fingerprint
+        int amount
+        int fine
+        int discount
+        int total_amount
+        int status "UNPAID PAID"
+        datetime paid_at
+    }
+
+    payments {
+        ulid id PK "NEW TABLE"
+        ulid branch_id FK
+        ulid student_id FK
+        string reference_number "PAY-YYYYMMDD-ULID"
+        int payment_method
+        int amount "total received"
+        string gateway_reference "future"
+        string gateway_status "future"
+        datetime paid_at
+    }
+
+    invoice_payment {
+        ulid payment_id FK "NEW PIVOT"
+        ulid invoice_id FK
+        int amount_applied
+        int fine_applied
+        int discount_applied
+    }
+
+    %% Fee Configuration
+    fee_types ||--o{ fee_schedules : "pricing rules"
+    schools ||--o{ fee_schedules : "per school"
+    school_years ||--o{ fee_schedules : "per year"
+
+    %% Student Overrides
+    fee_types ||--o{ student_fee_overrides : ""
+    students ||--o{ student_fee_overrides : "individual discount"
+    school_years ||--o{ student_fee_overrides : ""
+
+    %% Virtual Accounts
+    students ||--o{ student_virtual_accounts : "1 per branch"
+    branches ||--o{ student_virtual_accounts : ""
+
+    %% Invoices
+    fee_types ||--o{ invoices : "flexible types"
+    students ||--o{ invoices : has
+    branches ||--o{ invoices : ""
+    school_years ||--o{ invoices : ""
+
+    %% Payments
+    students ||--o{ payments : has
+    branches ||--o{ payments : ""
+    payments ||--o{ invoice_payment : "covers"
+    invoices ||--o{ invoice_payment : "paid by"
+  </pre>
+
+  <pre class="mermaid" id="diagram-supply" style="display:none">
+erDiagram
+    branches {
+        ulid id PK
+        string name
+    }
+
+    suppliers {
+        ulid id PK
+        string name
+        string contact_person
+        string phone
+    }
+
+    product_categories {
+        ulid id PK
+        string name
+        string code
+    }
+
+    product_variations {
+        ulid id PK
+        ulid product_category_id FK
+        string name
+        int sort_order
+    }
+
+    product_variation_options {
+        ulid id PK
+        ulid product_variation_id FK
+        string name
+    }
+
+    products {
+        ulid id PK
+        ulid supplier_id FK
+        ulid product_category_id FK
+        string name
+        string code
+        string sku_prefix
+    }
+
+    product_items {
+        ulid id PK
+        ulid product_id FK
+        string sku
+        int purchase_price
+        int sale_price
+        int status
+    }
+
+    product_configurations {
+        ulid product_item_id FK
+        ulid product_variation_option_id FK
+    }
+
+    product_stocks {
+        ulid id PK
+        ulid product_item_id FK
+        ulid branch_id FK
+        int quantity
+    }
+
+    product_stock_movements {
+        ulid id PK
+        ulid product_stock_id FK
+        ulid branch_id FK
+        int type "IN-OUT-TRANSFER"
+        int quantity
+        text notes
+        ulid related_to_id "transfer pair"
+    }
+
+    orders {
+        ulid id PK
+        ulid supplier_id FK
+        ulid school_year_id FK
+        date ordered_at
+        int status "PENDING-ORDERED-RECEIVED"
+    }
+
+    order_items {
+        ulid id PK
+        ulid order_id FK
+        ulid product_item_id FK
+        int quantity
+        int old_price
+        int new_price
+    }
+
+    suppliers ||--o{ products : has
+    product_categories ||--o{ products : has
+    product_categories ||--o{ product_variations : has
+    product_variations ||--o{ product_variation_options : has
+    products ||--o{ product_items : "SKU variants"
+    product_items ||--o{ product_configurations : ""
+    product_variation_options ||--o{ product_configurations : ""
+    product_items ||--o{ product_stocks : "per branch"
+    branches ||--o{ product_stocks : ""
+    product_stocks ||--o{ product_stock_movements : "audit trail"
+    product_stock_movements ||--o| product_stock_movements : "transfer pair"
+    suppliers ||--o{ orders : has
+    orders ||--o{ order_items : has
+    product_items ||--o{ order_items : ""
+  </pre>
+</div>
+
+<div class="info">Scroll to pan • Use tabs to filter by domain • Green = new tables • Yellow = modified</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'dark',
+    er: { layoutDirection: 'TB', minEntityWidth: 180, minEntityHeight: 30, entityPadding: 12, useMaxWidth: false },
+    themeVariables: {
+      darkMode: true,
+      background: '#0f172a',
+      primaryColor: '#3b82f6',
+      primaryTextColor: '#f8fafc',
+      lineColor: '#64748b',
+      fontSize: '13px'
+    }
+  });
+
+  async function renderAll() {
+    const diagrams = document.querySelectorAll('.mermaid');
+    for (const el of diagrams) {
+      const id = el.id;
+      const code = el.textContent;
+      try {
+        const { svg } = await mermaid.render(id + '-svg', code);
+        el.innerHTML = svg;
+      } catch (e) {
+        console.error('Mermaid render error for ' + id, e);
+      }
+    }
+  }
+
+  renderAll();
+
+  function showDiagram(name) {
+    document.querySelectorAll('.mermaid').forEach(el => el.style.display = 'none');
+    document.getElementById('diagram-' + name).style.display = 'flex';
+    document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+</script>
+</body>
+</html>

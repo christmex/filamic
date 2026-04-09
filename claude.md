@@ -13,7 +13,7 @@ Never assume versions. Always verify from these files.
 ## Workflow — No Skipping, Ever
 
 1. Read all relevant files before writing anything. List what you read.
-2. Create or update `todo/YYYY-MM-DD.md` before starting any task.
+2. Check `todo/backlog.md` for context. If working on a sprint, update the sprint file in `todo/sprints/` as you complete tasks.
 3. Show plan and wait for approval before any major change.
 4. One feature = one branch. Rebase on `main` before PR. Resolve all conflicts.
 5. Commit small and often. Conventional commits: `feat:` `fix:` `refactor:` `test:` `chore:`
