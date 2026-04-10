@@ -18,7 +18,10 @@ use Filament\Support\Enums\Platform;
 use Filament\Support\Enums\Size;
 use Filament\Support\Enums\Width;
 use Filament\Support\View\Components\ModalComponent;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Component as LivewireComponent;
 use Livewire\Features\SupportTesting\Testable;
@@ -29,6 +32,8 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5)->by($request->input('email') . $request->ip()));
+
         Filament::serving(function () {
             Filament::getCurrentPanel()
                 ->maxContentWidth(Width::Full)
