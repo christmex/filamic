@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+use App\Enums\Traits\Equatable;
 use Filament\Support\Contracts\HasLabel;
 
 enum GradeEnum: int implements HasLabel
 {
+    use Equatable;
+
     // TPA
     case TODDLER = 1;
     case NURSERY = 2;
@@ -75,5 +78,10 @@ enum GradeEnum: int implements HasLabel
     public function isFinalYear(): bool
     {
         return in_array($this, self::finalYears(), true);
+    }
+
+    public function isManualPromotionGrade(): bool
+    {
+        return in_array($this, [self::GRADE_3], true);
     }
 }

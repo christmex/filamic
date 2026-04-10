@@ -7,10 +7,10 @@ namespace App\Filament\Admin\Resources\Classrooms\Schemas;
 use App\Enums\GradeEnum;
 use App\Models\Classroom;
 use App\Models\School;
-use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -67,9 +67,16 @@ class ClassroomForm
                                 ignoreRecord: true
                             ),
                         TextInput::make('phase')
-                            ->placeholder('Example: A|B|C|D'),
-                        Checkbox::make('is_moving_class')
-                            ->label('Is Moving Class'),
+                            ->placeholder('Example: A | B | C | D'),
+                        TextInput::make('identifier')
+                            ->placeholder('Example: 1 | 2 | 3 | etc')
+                            ->required()
+                            ->helperText('Digunakan saat menyarankan kelas selanjutnya, contoh: Matthew 1 ke Mark 1'),
+                        ToggleButtons::make('is_moving_class')
+                            ->boolean()
+                            ->inline()
+                            ->label('Is Moving Class')
+                            ->default(false),
                     ]),
             ]);
     }

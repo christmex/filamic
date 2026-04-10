@@ -101,4 +101,15 @@ class SchoolYear extends AcademicPeriod
             get: fn (): string => "{$this->start_year}/{$this->end_year}",
         );
     }
+
+    public static function getNextSchoolYear(): ?self
+    {
+        $activeSchoolYear = self::getActive();
+
+        if (blank($activeSchoolYear)) {
+            return null;
+        }
+
+        return self::where('start_year', $activeSchoolYear->end_year)->first();
+    }
 }

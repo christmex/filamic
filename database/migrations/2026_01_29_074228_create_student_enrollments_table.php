@@ -15,7 +15,7 @@ return new class extends Migration
             $table->unsignedBigInteger('legacy_old_id')->nullable();
             $table->foreignUlid('branch_id')->constrained();
             $table->foreignUlid('school_id')->constrained();
-            $table->foreignUlid('classroom_id')->constrained();
+            $table->foreignUlid('classroom_id')->nullable()->constrained();
             $table->foreignUlid('school_year_id')->constrained();
             $table->foreignUlid('student_id')->constrained();
             $table->unsignedTinyInteger('status')->default(1)->index();

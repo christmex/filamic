@@ -12,6 +12,7 @@ use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ClassroomsTable
 {
@@ -21,6 +22,7 @@ class ClassroomsTable
             ->defaultGroup('school.name')
             ->recordUrl(null)
             ->paginationPageOptions(['all'])
+            ->modifyQueryUsing(fn (Builder $query) => $query->orderBy('grade')->orderBy('name'))
             ->groups([
                 Group::make('school.name')
                     ->collapsible()
@@ -34,6 +36,8 @@ class ClassroomsTable
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('grade')
+                    ->sortable(),
+                TextColumn::make('identifier')
                     ->sortable(),
                 TextColumn::make('phase'),
                 IconColumn::make('is_moving_class')

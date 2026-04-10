@@ -30,6 +30,8 @@ class MigrateLegacyData extends Command
 
     protected $description = 'Migrate data from legacy database to new database';
 
+    // Intentionally unused: selective skipping is disabled in handle(). Restore when re-enabled.
+    /** @phpstan-ignore classConstant.unused */
     private const array SKIPPED_LEGACY_STUDENT_IDS = [233, 2007];
 
     private const array GRADUATING_GRADE_LEVELS = [6, 9, 12];
@@ -55,9 +57,9 @@ class MigrateLegacyData extends Command
 
         $this->info('Migrasi data siswa...');
         $this->withProgressBar($legacyStudents, function (object $oldStudent): void {
-            if (in_array($oldStudent->id, self::SKIPPED_LEGACY_STUDENT_IDS)) {
-                return;
-            }
+            // if (in_array($oldStudent->id, self::SKIPPED_LEGACY_STUDENT_IDS)) {
+            //     return;
+            // }
 
             DB::transaction(function () use ($oldStudent): void {
                 $this->migrateStudent($oldStudent);
@@ -65,8 +67,8 @@ class MigrateLegacyData extends Command
         });
         $this->newLine(2);
 
-        $this->info('Migrasi tagihan siswa...');
-        $this->migrateStudentBills($legacyStudents);
+        // $this->info('Migrasi tagihan siswa...');
+        // $this->migrateStudentBills($legacyStudents);
 
         $this->outputSummary();
     }
@@ -90,6 +92,23 @@ class MigrateLegacyData extends Command
             ->table('student_classrooms')
             ->where('student_id', $oldStudent->id)
             ->get();
+
+        // Deduplicate per school year. Full history is preserved across years;
+        // only true duplicate rows (same student + same year) are collapsed to one record.
+        // Rule: prefer active record; if all inactive keep the first (lowest id) / original.
+        // Legacy student_classroom IDs are unreferenced elsewhere so discarded duplicates
+        // do not need to be tracked.
+        $legacyStudentClassrooms = $legacyStudentClassrooms
+            ->groupBy('school_year_id')
+            ->map(function (Collection $group): object {
+                if ($group->count() === 1) {
+                    return $group->first();
+                }
+
+                return $group->firstWhere('active', 1) ?? $group->sortBy('id')->first();
+            })
+            ->sortBy('school_year_id')
+            ->values();
 
         $legacyStudentSppBills = DB::connection('legacy')
             ->table('student_spp_bill')
@@ -157,6 +176,7 @@ class MigrateLegacyData extends Command
                 'school_id' => $school->getKey(),
                 'name' => $legacyClassroom->name,
                 'grade' => $this->mapGrade($legacyClassroom->level),
+                'identifier' => $this->extractClassroomIdentifier($legacyClassroom->name),
                 'phase' => $legacyClassroom->fase,
                 'is_moving_class' => $legacyClassroom->is_moving_class,
             ]);
@@ -194,20 +214,21 @@ class MigrateLegacyData extends Command
                 $graduationSchoolYear,
             );
 
-            $existingEnrollment = $student->enrollments()
-                ->where('branch_id', $student->branch_id)
-                ->where('school_id', $student->school_id)
-                ->where('classroom_id', $classroom->getKey())
-                ->where('school_year_id', $schoolYear->getKey())
-                ->first();
-
-            if ($existingEnrollment) {
-                if ($status === StudentEnrollmentStatusEnum::ENROLLED) {
-                    $existingEnrollment->delete();
-                }
-
-                continue;
-            }
+            // Duplicate handling moved upstream to migrateStudent() deduplication step.
+            // $existingEnrollment = $student->enrollments()
+            //     ->where('branch_id', $student->branch_id)
+            //     ->where('school_id', $student->school_id)
+            //     ->where('classroom_id', $classroom->getKey())
+            //     ->where('school_year_id', $schoolYear->getKey())
+            //     ->first();
+            //
+            // if ($existingEnrollment) {
+            //     if ($status === StudentEnrollmentStatusEnum::ENROLLED) {
+            //         $existingEnrollment->delete();
+            //     }
+            //
+            //     continue;
+            // }
 
             $student->enrollments()->createQuietly([
                 'legacy_old_id' => $legacyStudentClassroom->id,
@@ -218,6 +239,8 @@ class MigrateLegacyData extends Command
                 'status' => $status,
             ]);
         }
+
+        $student->syncActiveStatus();
     }
 
     private function resolveEnrollmentStatus(
@@ -267,6 +290,8 @@ class MigrateLegacyData extends Command
         // ]);
     }
 
+    // Intentionally unused: invoice migration is disabled in handle(). Restore when re-enabled.
+    /** @phpstan-ignore method.unused */
     private function migrateStudentBills(Collection $legacyStudents): void
     {
         $this->withProgressBar($legacyStudents, function (object $oldStudent): void {
@@ -495,6 +520,17 @@ class MigrateLegacyData extends Command
         }
 
         $this->info('Migrasi selesai!');
+    }
+
+    private function extractClassroomIdentifier(string $name): ?int
+    {
+        // Extracts the trailing number from names like "Matthew 1" → 1, "Acts 3" → 3.
+        // Returns null for moving classes ("Pindahan") and unnamed KG classes ("Loving", "Nursery").
+        if (preg_match('/\s(\d+)$/', $name, $matches)) {
+            return (int) $matches[1];
+        }
+
+        return null;
     }
 
     private function mapGrade(int $oldGrade): ?int
