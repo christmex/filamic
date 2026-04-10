@@ -1,13 +1,16 @@
 name: Build and Deploy Laravel Filament
+
 on:
-  push:
-    branches:
-      - main
-      - add-finance-module
+  workflow_run:
+    workflows: ["Check"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
+
 jobs:
   laravel-deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: 🚚 Checkout Code
