@@ -26,7 +26,24 @@
       "mcp__8c5701a1-565b-4e5a-bdd4-68ee3ecfe27f__notion-create-database",
       "mcp__8c5701a1-565b-4e5a-bdd4-68ee3ecfe27f__notion-update-page",
       "WebFetch(domain:flareapp.io)",
-      "WebFetch(domain:sentry.io)"
+      "WebFetch(domain:sentry.io)",
+      "mcp__8c5701a1-565b-4e5a-bdd4-68ee3ecfe27f__notion-create-view",
+      "Bash(git checkout:*)",
+      "Read(//Users/jo/.claude/plugins/**)",
+      "Read(//Users/jo/.claude/**)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create --title 'ci: run full test suite in check workflow' --body ':*)",
+      "Bash(git remote:*)",
+      "mcp__8c5701a1-565b-4e5a-bdd4-68ee3ecfe27f__notion-update-data-source",
+      "Bash(APP_LOCALE=en php artisan test --filter=formatted_ --compact)",
+      "Bash(gh pr:*)",
+      "Bash(gh run:*)",
+      "Bash(git fetch:*)",
+      "Bash(gh api:*)",
+      "Bash(git pull:*)",
+      "Bash(git cherry-pick:*)"
     ]
   },
   "enabledMcpjsonServers": [
