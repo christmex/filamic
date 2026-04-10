@@ -11,6 +11,10 @@ use App\Models\SchoolYear;
 use App\Models\Student;
 use Illuminate\Support\Carbon;
 
+// Currency accessors read from config('app.locale'). Force Indonesian locale
+// so these tests pass regardless of which .env file is present in CI.
+beforeEach(fn () => config(['app.locale' => 'id']));
+
 afterEach(fn () => Carbon::setTestNow());
 
 // --- Attribute Casting ---
