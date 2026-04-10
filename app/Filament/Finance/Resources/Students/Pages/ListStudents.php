@@ -72,6 +72,7 @@ class ListStudents extends ListRecords
     {
         return Action::make('createMonthlyInvoice')
             ->label('Uang Sekolah')
+            ->hidden()
             ->requiresConfirmation()
             ->modalIcon('tabler-invoice')
             ->slideOver()
