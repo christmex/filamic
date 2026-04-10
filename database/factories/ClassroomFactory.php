@@ -19,6 +19,7 @@ class ClassroomFactory extends Factory
         return [
             'name' => fake()->unique()->numerify('Classroom-####'),
             'grade' => fake()->numberBetween(1, 12),
+            'identifier' => fake()->numberBetween(1, 12),
             'phase' => fake()->randomElement(['A', 'B', 'C', 'D']),
             'is_moving_class' => fake()->boolean(),
         ];

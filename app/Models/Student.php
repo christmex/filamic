@@ -8,6 +8,7 @@ use App\Enums\GenderEnum;
 use App\Enums\GradeEnum;
 use App\Enums\ReligionEnum;
 use App\Enums\StatusInFamilyEnum;
+use App\Enums\StudentEnrollmentStatusEnum;
 use App\Models\Traits\BelongsToBranch;
 use App\Models\Traits\BelongsToClassroom;
 use App\Models\Traits\BelongsToSchool;
@@ -65,6 +66,7 @@ use Illuminate\Support\Number;
  * @property-read mixed $display_name
  * @property-read \Illuminate\Database\Eloquent\Collection<int, StudentEnrollment> $enrollments
  * @property-read int|null $enrollments_count
+ * @property-read mixed $formatted_nisn
  * @property-read mixed $initials
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Invoice> $invoices
  * @property-read int|null $invoices_count
@@ -80,6 +82,7 @@ use Illuminate\Support\Number;
  * @property-read User|null $user
  *
  * @method static Builder<static>|Student active()
+ * @method static Builder<static>|Student doesntHaveDraftEnrollmentForNextSchoolYear()
  * @method static \Database\Factories\StudentFactory factory($count = null, $state = [])
  * @method static Builder<static>|Student inactive()
  * @method static Builder<static>|Student newModelQuery()
@@ -234,6 +237,15 @@ class Student extends Model
         });
     }
 
+    #[Scope]
+    protected function doesntHaveDraftEnrollmentForNextSchoolYear(Builder $query): Builder
+    {
+        return $query->whereDoesntHave('enrollments', function (Builder $query) {
+            $query->where('status', StudentEnrollmentStatusEnum::DRAFT)
+                ->where('school_year_id', SchoolYear::getNextSchoolYear()?->getKey());
+        });
+    }
+
     // TODO: Restore when student_payment_accounts table is implemented.
     // #[Scope]
     // protected function eligibleForMonthlyFee(Builder $query): Builder
@@ -301,6 +313,11 @@ class Student extends Model
         });
     }
 
+    protected function formattedNisn(): Attribute
+    {
+        return Attribute::get(fn () => 'NISN: ' . (blank($this->nisn) ? '-' : $this->nisn));
+    }
+
     protected function displayName(): Attribute
     {
         return Attribute::get(function () {
@@ -317,6 +334,11 @@ class Student extends Model
 
             return "{$words->first()} {$middle} {$words->last()}";
         });
+    }
+
+    public function isInFinalYears(): bool
+    {
+        return $this->classroom?->grade?->isFinalYear() ?? false;
     }
 
     public function isNotInFinalYears(): bool

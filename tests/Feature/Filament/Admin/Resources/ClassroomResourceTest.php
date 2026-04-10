@@ -30,6 +30,7 @@ test('list page renders columns', function (string $column) {
 })->with([
     'name',
     'grade',
+    'identifier',
     'phase',
     'is_moving_class',
 ]);
@@ -78,7 +79,7 @@ test('can filter records by school', function () {
         ->assertCanNotSeeTableRecords([$classroom2]);
 });
 
-test('can filter records by moving class status', function () {
+test('can filter records by moving class', function () {
     // Arrange
     [$movingClassroom, $regularClassroom] = Classroom::factory(2)
         ->sequence(
@@ -106,6 +107,7 @@ test('cannot create a record without required fields', function () {
         ->assertHasFormErrors([
             'school_id' => 'required',
             'name' => 'required',
+            'identifier' => 'required',
         ]);
 });
 
@@ -137,8 +139,9 @@ test('can create a record', function () {
             'temp_level' => $school->level->value,
             'name' => 'New Test Classroom',
             'grade' => GradeEnum::GRADE_10->value,
+            'identifier' => 1,
             'phase' => 'A',
-            'is_moving_class' => false,
+            'is_moving_class' => true,
         ])
         ->call('create')
         ->assertHasNoFormErrors();
@@ -168,12 +171,14 @@ test('cannot save a record without required fields', function () {
             'school_id' => null,
             'grade' => null,
             'name' => null,
+            'identifier' => null,
         ])
         ->call('save')
         ->assertHasFormErrors([
             'school_id' => 'required',
             'grade' => 'required',
             'name' => 'required',
+            'identifier' => 'required',
         ]);
 });
 

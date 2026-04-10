@@ -223,3 +223,12 @@ button.fi-btn {
 .fi-ta-cell {
     @apply py-2
 }
+.fi-section-not-contained.fi-section-has-header {
+    @apply bg-white
+}
+.fi-section-not-contained.fi-section-has-header .fi-section-header{
+    @apply p-6 pt-4 pb-0
+}
+.fi-section-not-contained.fi-section-has-header.fi-collapsible.fi-collapsed {
+    @apply pb-4
+}

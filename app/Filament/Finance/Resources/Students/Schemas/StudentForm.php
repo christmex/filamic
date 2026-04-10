@@ -25,6 +25,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Operation;
 
@@ -61,11 +62,13 @@ class StudentForm
                                     Repeater::make('enrollments')
                                         ->visibleOn(Operation::Create)
                                         ->label('Data Kelas')
+                                        ->hint('Silahkan diisi jika peserta didik sudah memiliki data di tahun ajaran aktif')
                                         ->relationship('enrollments')
                                         ->defaultItems(0)
                                         ->maxItems(1)
                                         ->columnSpanFull()
                                         ->columns(3)
+                                        ->addActionLabel('Tambah Data Kelas')
                                         ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
                                             $data['branch_id'] = Filament::getTenant()->getKey();
                                             $data['status'] = StudentEnrollmentStatusEnum::ENROLLED;
@@ -73,18 +76,18 @@ class StudentForm
                                             return $data;
                                         })
                                         ->schema([
-                                            Select::make('school_year_id')
+                                            TextInput::make('school_year_id')
                                                 ->label('Tahun Ajaran')
-                                                ->relationship('schoolYear', 'name')
-                                                ->getOptionLabelFromRecordUsing(fn (SchoolYear $record) => "{$record->name}")
-                                                ->default(fn () => SchoolYear::getActive()?->getKey())
-                                                ->required()
-                                                ->hint(fn () => ($active = SchoolYear::getActive()) ? "Tahun ajaran aktif: {$active->name}" : 'Tahun ajaran belum aktif!'),
+                                                ->default(SchoolYear::getActive()?->name)
+                                                ->dehydrateStateUsing(fn () => SchoolYear::getActive()?->getKey())
+                                                ->readOnly()
+                                                ->required(),
                                             Select::make('school_id')
                                                 ->label('Unit Sekolah')
                                                 ->relationship('school', 'name')
                                                 ->required()
                                                 ->distinct()
+                                                ->afterStateUpdated(fn (Set $set) => $set('classroom_id', null))
                                                 ->disableOptionsWhenSelectedInSiblingRepeaterItems()
                                                 ->relationship('school', 'name', function ($query) {
                                                     $query->where('branch_id', Filament::getTenant()->getKey());

@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $school_id
  * @property string $name
  * @property GradeEnum $grade
+ * @property int|null $identifier
  * @property string|null $phase
  * @property bool $is_moving_class
  * @property \Illuminate\Support\Carbon|null $created_at
@@ -32,6 +33,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static Builder<static>|Classroom whereCreatedAt($value)
  * @method static Builder<static>|Classroom whereGrade($value)
  * @method static Builder<static>|Classroom whereId($value)
+ * @method static Builder<static>|Classroom whereIdentifier($value)
  * @method static Builder<static>|Classroom whereIsMovingClass($value)
  * @method static Builder<static>|Classroom whereLegacyOldId($value)
  * @method static Builder<static>|Classroom whereName($value)
