@@ -32,7 +32,7 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        RateLimiter::for('login', function (Request $request) {
+        RateLimiter::for('login', function (Request $request): Limit {
             if (! str_ends_with($request->path(), 'login')) {
                 return Limit::none();
             }
