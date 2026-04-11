@@ -10,18 +10,41 @@ Read these files before anything else, every session:
 
 Never assume versions. Always verify from these files.
 
+## Worktree Rule — Non-Negotiable
+
+**Always use the built-in `EnterWorktree` tool before making any code change on this repo.**
+Never `git checkout`, `git worktree add`, or edit files directly in `/Users/jo/Herd/filamic`.
+For background agents, always pass `isolation: "worktree"` to the Agent tool.
+The primary tree at `/Users/jo/Herd/filamic` must stay on `main`, clean, untouched.
+
+## Task Management
+
+Tasks live in the Notion database **"Filamic — Production Readiness"**.
+The `/todo` folder is deprecated — do not read or write it.
+
+**Every session, before starting work:**
+1. Sweep Notion for any tasks with status "In review".
+2. For each one, check if the PR has been merged on GitHub.
+3. If merged → flip Notion status to "Done" immediately.
+
+**When working a task:**
+- Set status to "In progress" when you start.
+- Set status to "In review" (and record the PR number in "Your decision") when the PR is open.
+- Set status to "Done" once the PR is merged.
+
 ## Workflow — No Skipping, Ever
 
 1. Read all relevant files before writing anything. List what you read.
-2. Check `todo/backlog.md` for context. If working on a sprint, update the sprint file in `todo/sprints/` as you complete tasks.
+2. Check Notion for the current sprint task. Note priority, files, and any decision needed before touching code.
 3. Show plan and wait for approval before any major change.
-4. One feature = one branch. Rebase on `main` before PR. Resolve all conflicts.
-5. Commit small and often. Conventional commits: `feat:` `fix:` `refactor:` `test:` `chore:`
+4. One feature = one branch off `main`. One task = one commit (squash if needed). Rebase on `main` before PR.
+5. Conventional commits: `feat:` `fix:` `refactor:` `test:` `chore:`
 6. Write Pest tests for everything we write.
-7. Before marking anything done, run:
+7. Before committing, run:
     - `composer analyse` → IDE helper models refresh + Pint formatting + PHPStan analysis
     - `composer test` → clears config + runs full Pest suite
-    - Both must pass with zero errors before committing.
+    - Both must pass with zero errors.
+    - **Stage and commit ALL files that `composer analyse` modified** — Pint and IDE helper routinely touch model files beyond your intended change. Leaving them unstaged dirties the primary tree.
 8. GitHub Actions must be green before requesting review.
 
 ## Migration Strategy (Environment-Aware)
