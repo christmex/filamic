@@ -23,6 +23,22 @@ test('login rate limiter is keyed by email and ip', function () {
     expect($limit)->toBeInstanceOf(Limit::class);
 });
 
+test('login rate limiter canonicalizes email to lowercase and trimmed', function () {
+    $limiter = RateLimiter::limiter('login');
+
+    $mixedCase = Request::create('/admin/login', 'POST');
+    $mixedCase->merge(['email' => 'Test@Example.COM']);
+
+    $padded = Request::create('/admin/login', 'POST');
+    $padded->merge(['email' => '  test@example.com  ']);
+
+    $lowercase = Request::create('/admin/login', 'POST');
+    $lowercase->merge(['email' => 'test@example.com']);
+
+    expect($limiter($mixedCase)->key)->toBe($limiter($lowercase)->key)
+        ->and($limiter($padded)->key)->toBe($limiter($lowercase)->key);
+});
+
 test('admin login route returns 429 after 5 requests from the same ip', function () {
     for ($i = 0; $i < 5; $i++) {
         $this->get('/admin/login')->assertOk();
