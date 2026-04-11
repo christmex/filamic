@@ -24,6 +24,17 @@ All work happens on a feature branch created via `EnterWorktree`.
 Claude opens a PR and stops. Only the human merges to `main`.
 No exceptions — not even for documentation, CLAUDE.md edits, or "tiny" fixes.
 
+## Branch Naming Convention
+
+Every branch must be tied to a Notion task ID:
+
+- Production Readiness tasks → `FIL-{id}/short-description` (e.g. `FIL-12/add-model-policies`)
+- Feature Backlog tasks → `FEAT-{id}/short-description` (e.g. `FEAT-7/fee-type-model`)
+- No-task hotfixes → `fix/short-description` (rare, only for critical production breaks)
+
+The `short-description` is kebab-case, max 5 words, describes what changes — not why.
+Always read the Notion task ID before entering a worktree so the branch name is correct.
+
 ## Task Management
 
 Tasks live in the Notion database **"Filamic — Production Readiness"**.
