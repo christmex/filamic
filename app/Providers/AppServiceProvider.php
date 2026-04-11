@@ -37,7 +37,9 @@ final class AppServiceProvider extends ServiceProvider
                 return Limit::none();
             }
 
-            return Limit::perMinute(5)->by($request->input('email') . $request->ip());
+            $email = mb_strtolower(mb_trim((string) $request->input('email', '')));
+
+            return Limit::perMinute(5)->by($email . $request->ip());
         });
 
         Filament::serving(function () {
