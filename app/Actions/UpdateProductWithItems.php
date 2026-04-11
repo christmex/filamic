@@ -6,6 +6,7 @@ namespace App\Actions;
 
 use App\Enums\GradeEnum;
 use App\Enums\LevelEnum;
+use App\Models\Branch;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductItem;
@@ -13,6 +14,7 @@ use App\Models\ProductVariationOption;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class UpdateProductWithItems
@@ -53,6 +55,13 @@ class UpdateProductWithItems
             $product->load('items');
 
             foreach ($product->items as $item) {
+                if ($item->movements()->exists()) {
+                    throw ValidationException::withMessages([
+                        'items' => "Item [{$item->sku}] has recorded stock movements and cannot be replaced.",
+                    ]);
+                }
+
+                $item->stocks()->delete();
                 $item->variationOptions()->detach();
                 $item->delete();
             }
@@ -100,6 +109,7 @@ class UpdateProductWithItems
             ]);
 
             $productItem->variationOptions()->attach($optionIds);
+            $this->createStock($productItem);
         }
     }
 
@@ -110,12 +120,27 @@ class UpdateProductWithItems
     {
         $sku = Product::generateSku($category->code, $product->name);
 
-        $product->items()->create([
+        /** @var ProductItem $productItem */
+        $productItem = $product->items()->create([
             'sku' => $sku,
             'purchase_price' => $data['purchase_price'],
             'sale_price' => $data['sale_price'],
             'is_active' => true,
         ]);
+
+        $this->createStock($productItem);
+    }
+
+    private function createStock(ProductItem $productItem): void
+    {
+        $branches = Branch::all();
+
+        foreach ($branches as $branch) {
+            $productItem->stocks()->create([
+                'branch_id' => $branch->getKey(),
+                'quantity' => 0,
+            ]);
+        }
     }
 
     /**
