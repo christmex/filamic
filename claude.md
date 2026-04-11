@@ -75,6 +75,13 @@ The `/todo` folder is deprecated — do not read or write it.
     - Both must pass with zero errors.
     - **Stage and commit ALL files that `composer analyse` modified** — Pint and IDE helper routinely touch model files beyond your intended change. Leaving them unstaged dirties the primary tree.
 8. GitHub Actions must be green before requesting review.
+9. **CodeRabbit review (automatic):** A GitHub Action posts a `@claude` mention once CodeRabbit finishes its review. When you receive that mention:
+   - Fetch the full PR review: `gh pr view {PR} --comments`
+   - Evaluate each CodeRabbit suggestion: apply only if correct, consistent with project conventions, and not a false positive. Skip nits that conflict with existing style.
+   - Apply changes in the existing worktree branch (re-enter via `EnterWorktree` if the session is new).
+   - Re-run `composer analyse` + `composer test` — both must pass.
+   - Commit as `fix: apply CodeRabbit review suggestions` and push.
+   - If nothing is applicable, reply on the PR explaining what was skipped and why.
 
 ## Migration Strategy (Environment-Aware)
 
