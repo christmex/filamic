@@ -17,6 +17,13 @@ Never `git checkout`, `git worktree add`, or edit files directly in `/Users/jo/H
 For background agents, always pass `isolation: "worktree"` to the Agent tool.
 The primary tree at `/Users/jo/Herd/filamic` must stay on `main`, clean, untouched.
 
+## Branch & Merge Rule — Non-Negotiable
+
+**Claude never commits or pushes directly to `main`. Ever.**
+All work happens on a feature branch created via `EnterWorktree`.
+Claude opens a PR and stops. Only the human merges to `main`.
+No exceptions — not even for documentation, CLAUDE.md edits, or "tiny" fixes.
+
 ## Task Management
 
 Tasks live in the Notion database **"Filamic — Production Readiness"**.
