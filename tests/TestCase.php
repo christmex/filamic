@@ -23,7 +23,7 @@ abstract class TestCase extends BaseTestCase
         $school ??= School::factory()->create();
         Context::add('school', $school);
 
-        $user ??= User::factory()->create([
+        $user ??= User::factory()->employee()->create([
             'name' => 'Super Admin',
             'email' => 'super@admin.com',
             'password' => bcrypt('mantapjiwa00'),
@@ -35,7 +35,7 @@ abstract class TestCase extends BaseTestCase
     public function loginFinance(?User $user = null, ?Branch $branch = null): Branch
     {
         $branch ??= Branch::factory()->create();
-        $user ??= User::factory()->create();
+        $user ??= User::factory()->employee()->create();
         $branch->users()->attach($user->getKey());
 
         $this->actingAs($user);
@@ -49,7 +49,7 @@ abstract class TestCase extends BaseTestCase
     public function loginSupplyHub(?User $user = null, ?Branch $branch = null): Branch
     {
         $branch ??= Branch::factory()->create();
-        $user ??= User::factory()->create();
+        $user ??= User::factory()->employee()->create();
         $branch->users()->attach($user->getKey());
 
         $this->actingAs($user);

@@ -25,6 +25,13 @@ class UserFactory extends Factory
         ];
     }
 
+    public function employee(): static
+    {
+        return $this->state([
+            'user_type' => UserTypeEnum::EMPLOYEE,
+        ]);
+    }
+
     public function active(): static
     {
         return $this->state([
