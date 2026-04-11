@@ -50,6 +50,15 @@ The `/todo` folder is deprecated — do not read or write it.
 - Set status to "In review" (and record the PR number in "Your decision") when the PR is open.
 - Set status to "Done" once the PR is merged.
 
+**When doing approved ad-hoc work (bug found in conversation, not yet in Notion):**
+1. Create a Notion task in "Filamic — Production Readiness" BEFORE opening the PR.
+   - Title: short description of the fix
+   - Body must include:
+     - **What happened** — observable symptom
+     - **Why it happened** — root cause
+     - **How we solved it** — the fix applied
+2. Set status to "In progress", then follow the normal task lifecycle (In review → Done).
+
 ## Workflow — No Skipping, Ever
 
 1. Read all relevant files before writing anything. List what you read.

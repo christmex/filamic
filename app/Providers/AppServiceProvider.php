@@ -32,7 +32,13 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5)->by($request->input('email') . $request->ip()));
+        RateLimiter::for('login', function (Request $request) {
+            if (! str_ends_with($request->path(), 'login')) {
+                return Limit::none();
+            }
+
+            return Limit::perMinute(5)->by($request->input('email') . $request->ip());
+        });
 
         Filament::serving(function () {
             Filament::getCurrentPanel()
