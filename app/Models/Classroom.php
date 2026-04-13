@@ -29,6 +29,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Database\Factories\ClassroomFactory factory($count = null, $state = [])
  * @method static Builder<static>|Classroom newModelQuery()
  * @method static Builder<static>|Classroom newQuery()
+ * @method static Builder<static>|Classroom onlyInFinalYears(array $exclude = [])
+ * @method static Builder<static>|Classroom onlyInFirstYears()
  * @method static Builder<static>|Classroom query()
  * @method static Builder<static>|Classroom whereCreatedAt($value)
  * @method static Builder<static>|Classroom whereGrade($value)
@@ -66,5 +68,18 @@ class Classroom extends Model
     protected function excludeFinalYears(Builder $query): Builder
     {
         return $query->whereNotIn('grade', GradeEnum::finalYears());
+    }
+
+    #[Scope]
+    protected function onlyInFinalYears(Builder $query, array $exclude = []): Builder
+    {
+        return $query->whereIn('grade', GradeEnum::finalYears())
+            ->when($exclude, fn (Builder $q) => $q->whereNotIn('grade', $exclude));
+    }
+
+    #[Scope]
+    protected function onlyInFirstYears(Builder $query): Builder
+    {
+        return $query->whereIn('grade', GradeEnum::firstYears());
     }
 }

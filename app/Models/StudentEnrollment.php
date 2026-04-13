@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use InvalidArgumentException;
 
 /**
  * @property string $id
@@ -85,6 +86,14 @@ class StudentEnrollment extends Model
 
     protected static function booted(): void
     {
+        static::saving(function (self $enrollment): void {
+            $schoolBranchId = School::where('id', $enrollment->school_id)->value('branch_id');
+
+            if ($schoolBranchId !== $enrollment->branch_id) {
+                throw new InvalidArgumentException('Sekolah tidak termasuk dalam cabang yang dipilih.');
+            }
+        });
+
         static::saved(function (self $studentEnrollment): void {
             $studentEnrollment->student->syncActiveStatus();
         });

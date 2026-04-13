@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Filament\Admin\Resources\SchoolYears\Pages\CreateSchoolYear;
 use App\Filament\Admin\Resources\SchoolYears\Pages\EditSchoolYear;
 use App\Filament\Admin\Resources\SchoolYears\Pages\ListSchoolYears;
-use App\Filament\Admin\Resources\SchoolYears\Pages\ViewSchoolYear;
 use App\Filament\Admin\Resources\SchoolYears\SchoolYearResource;
 use App\Models\SchoolYear;
 use Filament\Actions\Testing\TestAction;
@@ -62,13 +61,22 @@ test('list page shows rows', function () {
         ->assertCanSeeTableRecords($records);
 });
 
-test('list page rows have view action', function () {
+test('list page rows does not have edit action for inactive record', function () {
     // Arrange
-    $record = SchoolYear::factory()->create();
+    $record = SchoolYear::factory()->inactive()->create();
 
     // Act & Assert
     Livewire::test(ListSchoolYears::class)
-        ->assertActionVisible(TestAction::make('view')->table($record));
+        ->assertActionHidden(TestAction::make('edit')->table($record));
+});
+
+test('list page rows have edit action for only the active record', function () {
+    // Arrange
+    $record = SchoolYear::factory()->active()->create();
+
+    // Act & Assert
+    Livewire::test(ListSchoolYears::class)
+        ->assertActionVisible(TestAction::make('edit')->table($record));
 });
 
 test('create page is accessible', function () {
@@ -250,34 +258,6 @@ test('creating an inactive school year does not deactivate others', function () 
         ->and($newInactive)->not->toBeNull()
         ->and($newInactive->is_active)->toBeFalse()
         ->and(SchoolYear::query()->active()->count())->toBe(1);
-});
-
-test('view page is accessible', function () {
-    $record = SchoolYear::factory()->create();
-
-    $this->get(SchoolYearResource::getUrl('view', ['record' => $record]))->assertOk();
-});
-
-test('view page displays all information', function () {
-    $record = SchoolYear::factory()->create([
-        'start_year' => 2024,
-        'end_year' => 2025,
-    ]);
-
-    Livewire::test(ViewSchoolYear::class, ['record' => $record->getRouteKey()])
-        ->assertSchemaStateSet([
-            'name' => $record->name,
-            'start_date' => $record->start_date,
-            'end_date' => $record->end_date,
-            'is_active' => $record->is_active,
-        ]);
-});
-
-test('view page has edit action', function () {
-    $record = SchoolYear::factory()->create();
-
-    Livewire::test(ViewSchoolYear::class, ['record' => $record->getRouteKey()])
-        ->assertActionVisible(TestAction::make('edit')->table($record));
 });
 
 test('edit page is accessible', function () {

@@ -70,6 +70,7 @@ use Illuminate\Support\Number;
  * @property-read mixed $initials
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Invoice> $invoices
  * @property-read int|null $invoices_count
+ * @property-read StudentEnrollment|null $nextEnrollment
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Invoice> $paidMonthlyFee
  * @property-read int|null $paid_monthly_fee_count
  * @property-read School|null $school
@@ -84,6 +85,7 @@ use Illuminate\Support\Number;
  * @method static Builder<static>|Student active()
  * @method static Builder<static>|Student doesntHaveDraftEnrollmentForNextSchoolYear()
  * @method static \Database\Factories\StudentFactory factory($count = null, $state = [])
+ * @method static Builder<static>|Student inFinalYears(array $exclude = [])
  * @method static Builder<static>|Student inactive()
  * @method static Builder<static>|Student newModelQuery()
  * @method static Builder<static>|Student newQuery()
@@ -222,6 +224,14 @@ class Student extends Model
     }
 
     /**
+     * @return HasOne<StudentEnrollment, $this>
+     */
+    public function nextEnrollment(): HasOne
+    {
+        return $this->hasOne(StudentEnrollment::class)->draft();
+    }
+
+    /**
      * @return HasOneThrough<Classroom, StudentEnrollment, $this>
      */
     public function currentClassroom(): HasOneThrough
@@ -234,6 +244,15 @@ class Student extends Model
     {
         return $query->whereDoesntHave('classroom', function (Builder $query) {
             $query->whereIn('grade', GradeEnum::finalYears());
+        });
+    }
+
+    #[Scope]
+    protected function inFinalYears(Builder $query, array $exclude = []): Builder
+    {
+        return $query->whereHas('classroom', function (Builder $query) use ($exclude) {
+            $query->whereIn('grade', GradeEnum::finalYears())
+                ->when($exclude, fn (Builder $q) => $q->whereNotIn('grade', $exclude));
         });
     }
 

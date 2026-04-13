@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Filament\Admin\Resources\SchoolYears\Tables;
 
-use Filament\Actions\ViewAction;
+use App\Models\SchoolYear;
+use Filament\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 
 class SchoolYearsTable
@@ -16,10 +17,11 @@ class SchoolYearsTable
         return $table
             ->columns([
                 TextColumn::make('name'),
-                ToggleColumn::make('is_active'),
+                IconColumn::make('is_active'),
             ])
             ->recordActions([
-                ViewAction::make(),
+                EditAction::make()
+                    ->visible(fn (SchoolYear $record) => $record->is_active === true),
             ])
             ->defaultSort('start_year', 'desc');
     }

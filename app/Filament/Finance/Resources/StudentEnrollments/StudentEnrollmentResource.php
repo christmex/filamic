@@ -88,12 +88,13 @@ class StudentEnrollmentResource extends Resource
             ->filtersFormColumns(2)
             ->recordActions([
                 EditAction::make()
-                    ->label('Ganti Kelas')
-                    ->modalHeading(fn ($record) => "Ganti Kelas Tujuan {$record->student->name}")
+                    ->label(fn (StudentEnrollment $record) => $record->classroom_id ? 'Ganti Kelas' : 'Tentukan Kelas')
+                    ->icon('tabler-edit')
+                    ->modalHeading(fn (StudentEnrollment $record) => $record->classroom_id ? "Ganti Kelas Tujuan {$record->student->name}" : "Tentukan Kelas Tujuan {$record->student->name}")
                     ->schema([
                         Select::make('classroom_id')
                             ->label('Nama Kelas')
-                            ->options(fn ($record) => Classroom::query()
+                            ->options(fn (StudentEnrollment $record) => Classroom::query()
                                 ->where('school_id', $record->student->school_id)
                                 ->where('grade', $record->student->classroom->getRawOriginal('grade') + 1)
                                 ->pluck('name', 'id'))
@@ -116,6 +117,11 @@ class StudentEnrollmentResource extends Resource
                                 ->searchable(),
                         ])
                         ->action(function (array $data) {}),
+
+                    // TODO: IMPORT EXCEL/CSV
+                    Action::make('import')
+                        ->icon('tabler-file-import')
+                        ->label('Import Excel/CSV'),
                 ]),
                 Action::make('generateGradePromotionDraft')
                     ->label('Buat Draft Kenaikan Kelas')

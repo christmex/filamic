@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Filament\Finance\Resources\StudentEnrollments\Pages;
 
 use App\Filament\Finance\Resources\StudentEnrollments\StudentEnrollmentResource;
+use App\Filament\Finance\Resources\StudentEnrollments\Tables\GraduateTable;
 use App\Models\StudentEnrollment;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\ManageRecords;
 use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\EmbeddedTable;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\RenderHook;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -83,11 +85,12 @@ class ManageStudentEnrollments extends ManageRecords
                 RenderHook::make(PanelsRenderHook::RESOURCE_PAGES_LIST_RECORDS_TABLE_BEFORE),
                 Section::make()
                     ->heading('Generate Otomatis')
-                    ->description('Tabel dibawah ini untuk semua siswa yang naik kelas (SD, SMP, SMA)')
+                    ->description('Tabel dibawah ini untuk semua siswa yang naik kelas (SD, SMP, SMA) selain yang akan lulus')
                     ->icon('tabler-repeat')
                     ->contained(false)
                     ->iconColor('info')
-                    ->collapsed(false)
+                    ->collapsed(true)
+                    ->persistCollapsed()
                     ->compact()
                     ->schema([
                         EmbeddedTable::make(),
@@ -100,12 +103,17 @@ class ManageStudentEnrollments extends ManageRecords
                 //     ->iconColor('warning')
                 //     ->collapsed(),
                 Section::make()
-                    ->heading('Lulus')
-                    ->description('Tabel dibawah ini untuk siswa kelas 6 SD, 3 SMP, dan 3 SMA yang akan lulus')
+                    ->heading('Akan Lulus')
+                    ->description('Daftar peserta didik yang akan lulus (TK, SD, SMP) dan bisa lanjut ke jenjang selanjutnya')
                     ->icon('tabler-school')
                     ->contained(false)
                     ->iconColor('success')
-                    ->collapsed(),
+                    ->collapsed(true)
+                    ->persistCollapsed()
+                    ->compact()
+                    ->schema([
+                        Livewire::make(GraduateTable::class)->columnSpanFull(),
+                    ]),
                 RenderHook::make(PanelsRenderHook::RESOURCE_PAGES_LIST_RECORDS_TABLE_AFTER),
             ]);
     }

@@ -258,6 +258,50 @@ it('saved hook deactivates student when active enrollment is changed to inactive
     expect($student->refresh()->is_active)->toBeFalse();
 });
 
+it('throws when school does not belong to the branch', function () {
+    // Arrange — school is in branchB, but enrollment uses branchA
+    $branchA = Branch::factory()->create();
+    $branchB = Branch::factory()->create();
+    $schoolInBranchB = School::factory()->for($branchB)->create();
+    $classroom = Classroom::factory()->for($schoolInBranchB)->create();
+    $schoolYear = SchoolYear::factory()->create();
+
+    // Act & Assert — mismatch: school belongs to branchB, enrollment sets branchA
+    expect(fn () => StudentEnrollment::factory()->create([
+        'branch_id' => $branchA->getKey(),
+        'school_id' => $schoolInBranchB->getKey(),
+        'classroom_id' => $classroom->getKey(),
+        'school_year_id' => $schoolYear->getKey(),
+        'student_id' => Student::factory()->for($schoolInBranchB)->for($branchB)->create()->getKey(),
+        'status' => StudentEnrollmentStatusEnum::ENROLLED,
+    ]))->toThrow(InvalidArgumentException::class, 'Sekolah tidak termasuk dalam cabang yang dipilih.');
+});
+
+it('does not throw when school belongs to the branch', function () {
+    // Arrange — school is in branchA, enrollment also sets branchA
+    $branch = Branch::factory()->create();
+    $school = School::factory()->for($branch)->create();
+    $classroom = Classroom::factory()->for($school)->create();
+    $schoolYear = SchoolYear::factory()->create();
+    $student = Student::factory()->for($school)->for($branch)->create();
+
+    // Act
+    $enrollment = StudentEnrollment::factory()->create([
+        'branch_id' => $branch->getKey(),
+        'school_id' => $school->getKey(),
+        'classroom_id' => $classroom->getKey(),
+        'school_year_id' => $schoolYear->getKey(),
+        'student_id' => $student->getKey(),
+        'status' => StudentEnrollmentStatusEnum::ENROLLED,
+    ]);
+
+    // Assert — guard let it through AND the record actually exists in the DB
+    expect($enrollment)
+        ->toBeInstanceOf(StudentEnrollment::class)
+        ->branch_id->toBe($branch->getKey())
+        ->school_id->toBe($school->getKey());
+});
+
 it('saved hook syncs student branch, school and classroom from enrollment', function () {
     // Arrange
     $activeYear = SchoolYear::factory()->active()->create();
