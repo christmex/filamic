@@ -100,12 +100,15 @@ class StudentEnrollmentResource extends Resource
                                 ->pluck('name', 'id'))
                             ->required(),
                     ]),
-                DeleteAction::make(),
+                DeleteAction::make()
+                    ->label('Hapus Data Kenaikan Kelas'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->label('Hapus Data Kenaikan Kelas'),
                     Action::make('bulkMovingClassroom')
+                        ->label('Pindah Cabang Massal')
                         ->icon('tabler-sparkles-2')
                         ->schema([
                             Select::make('classroom_id')
@@ -117,12 +120,11 @@ class StudentEnrollmentResource extends Resource
                                 ->searchable(),
                         ])
                         ->action(function (array $data) {}),
-
-                    // TODO: IMPORT EXCEL/CSV
-                    Action::make('import')
-                        ->icon('tabler-file-import')
-                        ->label('Import Excel/CSV'),
                 ]),
+                // TODO: IMPORT EXCEL/CSV
+                Action::make('import')
+                    ->icon('tabler-file-import')
+                    ->label('Import Excel/CSV'),
                 Action::make('generateGradePromotionDraft')
                     ->label('Buat Draft Kenaikan Kelas')
                     ->icon('tabler-plus')
@@ -148,19 +150,12 @@ class StudentEnrollmentResource extends Resource
                                 ->title('Gagal membuat draft kenaikan kelas!')
                                 ->body($error->getMessage())
                                 ->danger()
-                                ->persistent()
                                 ->send();
 
                             return;
                         }
 
                     }),
-                Action::make('info')
-                    ->label('Silahkan pilih siswa untuk melakukan pindah kelas secara massal')
-                    ->link()
-                    ->disabled()
-                    ->icon('tabler-info-circle')
-                    ->color('info'),
             ]);
     }
 

@@ -169,7 +169,11 @@ class GraduateTable extends Component implements HasActions, HasSchemas, HasTabl
                         }
                     }),
                 DeleteAction::make()
+                    ->label('Hapus Pendaftaran')
                     ->visible(fn (Student $record) => $record->nextEnrollment !== null)
+                    ->requiresConfirmation()
+                    ->modalHeading(fn (Student $record) => "Hapus Pendaftaran {$record->name}")
+                    ->modalDescription('Tindakan ini akan menghapus pendaftaran peserta didik dari jenjang selanjutnya.')
                     ->using(function (Student $record) {
                         try {
                             $record->nextEnrollment->delete();
@@ -190,13 +194,11 @@ class GraduateTable extends Component implements HasActions, HasSchemas, HasTabl
                     }),
             ])
             ->toolbarActions([
-                // TODO: IMPORT EXCEL/CSV
-                Action::make('import')
-                    ->icon('tabler-file-import')
-                    ->label('Import Excel/CSV'),
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->label('Hapus Pendaftaran'),
                     Action::make('bulkMovingClassroom')
+                        ->label('Pindah Cabang Massal')
                         ->icon('tabler-sparkles-2')
                         ->schema([
                             Select::make('classroom_id')
@@ -209,6 +211,10 @@ class GraduateTable extends Component implements HasActions, HasSchemas, HasTabl
                         ])
                         ->action(function (array $data) {}),
                 ]),
+                // TODO: IMPORT EXCEL/CSV
+                Action::make('import')
+                    ->icon('tabler-file-import')
+                    ->label('Import Excel/CSV'),
             ]);
     }
 

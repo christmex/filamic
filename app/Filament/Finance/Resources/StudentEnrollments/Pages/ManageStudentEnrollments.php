@@ -7,55 +7,18 @@ namespace App\Filament\Finance\Resources\StudentEnrollments\Pages;
 use App\Filament\Finance\Resources\StudentEnrollments\StudentEnrollmentResource;
 use App\Filament\Finance\Resources\StudentEnrollments\Tables\GraduateTable;
 use App\Models\StudentEnrollment;
-use Filament\Actions\Action;
 use Filament\Resources\Pages\ManageRecords;
 use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\EmbeddedTable;
 use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\RenderHook;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\View\PanelsRenderHook;
-use Illuminate\Database\Eloquent\Builder;
 
 class ManageStudentEnrollments extends ManageRecords
 {
     protected static string $resource = StudentEnrollmentResource::class;
-
-    public function getHeaderActions(): array
-    {
-        return [
-            Action::make('finalizeStudentGradePromotion')
-                ->tooltip(fn () => StudentEnrollment::emptyClassroom()->count() ? 'Masih ada siswa yang belum memiliki Kelas Tujuan' : null)
-                ->visible(fn () => StudentEnrollment::draft()->count())
-                ->disabled(fn () => StudentEnrollment::emptyClassroom()->count())
-                ->label('Finalisasi Data Kenaikan Kelas')
-                ->requiresConfirmation()
-                ->modalHeading('Apakah anda yakin?')
-                ->modalDescription('Tindakan ini akan memfinalisasi data kenaikan kelas dan tidak dapat dikembalikan, jadi pastikan data sudah benar')
-                ->modalIcon('tabler-check')
-                ->modalIconColor('success')
-                ->icon('tabler-check')
-                ->color('success')
-                ->action(function () {
-                    // check apakah ada classroom_id yang masih kosong
-                }),
-        ];
-    }
-
-    // use form component tab instead
-    // public function getTabs(): array
-    // {
-    //     return [
-    //         Tab::make()
-    //             ->label('Naik Kelas')
-    //             ->modifyQueryUsing(fn (Builder $query) => $query),
-    //         Tab::make()
-    //             ->label('Pindah Cabang')
-    //             ->modifyQueryUsing(fn (Builder $query) => $query),
-    //     ];
-    // }
 
     public function content(Schema $schema): Schema
     {
@@ -89,7 +52,7 @@ class ManageStudentEnrollments extends ManageRecords
                     ->icon('tabler-repeat')
                     ->contained(false)
                     ->iconColor('info')
-                    ->collapsed(true)
+                    ->collapsed(false)
                     ->persistCollapsed()
                     ->compact()
                     ->schema([
@@ -108,7 +71,7 @@ class ManageStudentEnrollments extends ManageRecords
                     ->icon('tabler-school')
                     ->contained(false)
                     ->iconColor('success')
-                    ->collapsed(true)
+                    ->collapsed(false)
                     ->persistCollapsed()
                     ->compact()
                     ->schema([
