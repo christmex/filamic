@@ -7,6 +7,7 @@ namespace App\Filament\Finance\Resources\StudentEnrollments\Tables;
 use App\Actions\CreateNextLevelEnrollment;
 use App\Actions\UpdateNextLevelEnrollmentClassroom;
 use App\Enums\GradeEnum;
+use App\Filament\Finance\Resources\Students\StudentResource;
 use App\Models\Classroom;
 use App\Models\Student;
 use Filament\Actions\Action;
@@ -44,8 +45,10 @@ class GraduateTable extends Component implements HasActions, HasSchemas, HasTabl
             ->paginationMode(PaginationMode::Simple)
             ->query(fn (): Builder => Student::where('branch_id', filament()->getTenant()->getKey())->inFinalYears(exclude: [GradeEnum::GRADE_12]))
             ->columns([
-                TextColumn::make('name')
+                TextColumn::make('name')->tooltip('Klik untuk lihat detail peserta didik')
                     ->label('Nama Peserta Didik')
+                    ->description(fn (Student $record) => $record->formattedNisn) // @phpstan-ignore-line -- formattedNisn is a virtual Attribute accessor not visible to static analysis via the docblock
+                    ->url(fn (Student $record) => StudentResource::getUrl('edit', ['record' => $record]))
                     ->searchable(),
                 TextColumn::make('classroom.name')
                     ->label('Kelas Aktif')
