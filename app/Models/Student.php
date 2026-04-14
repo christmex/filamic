@@ -22,7 +22,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Number;
 
@@ -61,7 +60,6 @@ use Illuminate\Support\Number;
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read Branch|null $branch
  * @property-read Classroom|null $classroom
- * @property-read Classroom|null $currentClassroom
  * @property-read StudentEnrollment|null $currentEnrollment
  * @property-read mixed $display_name
  * @property-read \Illuminate\Database\Eloquent\Collection<int, StudentEnrollment> $enrollments
@@ -229,14 +227,6 @@ class Student extends Model
     public function nextEnrollment(): HasOne
     {
         return $this->hasOne(StudentEnrollment::class)->draft();
-    }
-
-    /**
-     * @return HasOneThrough<Classroom, StudentEnrollment, $this>
-     */
-    public function currentClassroom(): HasOneThrough
-    {
-        return $this->hasOneThrough(Classroom::class, StudentEnrollment::class, 'student_id', 'id', 'id', 'classroom_id');
     }
 
     #[Scope]

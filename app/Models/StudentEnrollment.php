@@ -157,4 +157,13 @@ class StudentEnrollment extends Model
         return $this->school_year_id === $activeYearId
             && in_array($this->status, StudentEnrollmentStatusEnum::getActiveStatuses());
     }
+
+    // public function setDraftToEnrolled(SchoolYear $schoolYear): void
+    // {
+    //     self::where('school_year_id', $schoolYear->getKey())
+    //         ->where('status', StudentEnrollmentStatusEnum::DRAFT)
+    //         ->update([
+    //             'status' => StudentEnrollmentStatusEnum::ENROLLED,
+    //         ]);
+    // }
 }

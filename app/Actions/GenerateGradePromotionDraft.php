@@ -19,6 +19,8 @@ class GenerateGradePromotionDraft
 
     public function handle(): int
     {
+        $nextSchoolYear = SchoolYear::getNextSchoolYearOrFail();
+
         $students = Student::query()
             ->active()
             ->notInFinalYears()
@@ -27,12 +29,6 @@ class GenerateGradePromotionDraft
             ->get();
 
         $drafts = [];
-
-        $nextSchoolYear = SchoolYear::getNextSchoolYear();
-
-        if (blank($nextSchoolYear)) {
-            throw new Exception('Tahun Ajaran Selanjutnya Tidak Ditemukan');
-        }
 
         $schoolIds = $students->pluck('school_id')->unique()->values();
         $grades = $students->pluck('classroom.grade')->unique()->map(fn ($grade) => $grade->value + 1)->values();

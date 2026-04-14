@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
 use InvalidArgumentException;
 
@@ -111,5 +112,19 @@ class SchoolYear extends AcademicPeriod
         }
 
         return self::where('start_year', $activeSchoolYear->end_year)->first();
+    }
+
+    /**
+     * @throws ModelNotFoundException
+     */
+    public static function getNextSchoolYearOrFail(): self
+    {
+        $nextSchoolYear = self::getNextSchoolYear();
+
+        if (blank($nextSchoolYear)) {
+            throw new ModelNotFoundException('Tahun Ajaran Selanjutnya Tidak Ditemukan');
+        }
+
+        return $nextSchoolYear;
     }
 }

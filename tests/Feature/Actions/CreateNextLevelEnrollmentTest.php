@@ -10,6 +10,7 @@ use App\Models\School;
 use App\Models\SchoolYear;
 use App\Models\Student;
 use App\Models\StudentEnrollment;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 test('creates a DRAFT enrollment using the classroom school_id, not the student school_id', function () {
     // Arrange — student is in SD (sdSchool), target classroom is in SMP (smpSchool), same branch
@@ -65,7 +66,7 @@ test('throws when no next school year exists', function () {
     // No next school year created
 
     expect(fn () => CreateNextLevelEnrollment::run($student, $targetClassroom))
-        ->toThrow(InvalidArgumentException::class, 'Tahun Ajaran Selanjutnya Tidak Ditemukan');
+        ->toThrow(ModelNotFoundException::class, 'Tahun Ajaran Selanjutnya Tidak Ditemukan');
 });
 
 test('throws when no active school year exists', function () {
@@ -77,5 +78,5 @@ test('throws when no active school year exists', function () {
     // No active school year at all
 
     expect(fn () => CreateNextLevelEnrollment::run($student, $targetClassroom))
-        ->toThrow(InvalidArgumentException::class, 'Tahun Ajaran Selanjutnya Tidak Ditemukan');
+        ->toThrow(ModelNotFoundException::class, 'Tahun Ajaran Selanjutnya Tidak Ditemukan');
 });

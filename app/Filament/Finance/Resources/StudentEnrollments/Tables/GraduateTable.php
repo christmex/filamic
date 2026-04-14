@@ -28,6 +28,7 @@ use Filament\Tables\Enums\PaginationMode;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use InvalidArgumentException;
 use Livewire\Component;
 use Throwable;
@@ -155,7 +156,7 @@ class GraduateTable extends Component implements HasActions, HasSchemas, HasTabl
                                 ->title('Peserta didik berhasil didaftarkan!')
                                 ->success()
                                 ->send();
-                        } catch (InvalidArgumentException $error) {
+                        } catch (InvalidArgumentException | ModelNotFoundException $error) {
                             Notification::make()
                                 ->title('Gagal mendaftarkan!')
                                 ->body($error->getMessage())

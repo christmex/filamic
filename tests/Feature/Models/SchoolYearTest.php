@@ -8,6 +8,7 @@ use App\Models\School;
 use App\Models\SchoolYear;
 use App\Models\Student;
 use App\Models\StudentEnrollment;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
 
 test('it prevents mass assignment to guarded id', function () {
@@ -268,3 +269,26 @@ test('getActive returns currently active school year', function () {
 test('getActiveCacheKey returns cache key')
     ->expect(SchoolYear::getActiveCacheKey())
     ->toBe('active_school_year_record');
+
+test('getNextSchoolYearOrFail returns next school year', function () {
+    SchoolYear::factory()->active()->create(['start_year' => 2025]);
+    $nextYear = SchoolYear::factory()->inactive()->create(['start_year' => 2026]);
+
+    $result = SchoolYear::getNextSchoolYearOrFail();
+
+    expect($result->getKey())->toBe($nextYear->getKey());
+});
+
+test('getNextSchoolYearOrFail throws when no next school year exists', function () {
+    SchoolYear::factory()->active()->create(['start_year' => 2025]);
+
+    expect(fn () => SchoolYear::getNextSchoolYearOrFail())
+        ->toThrow(ModelNotFoundException::class, 'Tahun Ajaran Selanjutnya Tidak Ditemukan');
+});
+
+test('getNextSchoolYearOrFail throws when no active school year exists', function () {
+    SchoolYear::factory()->inactive()->create(['start_year' => 2025]);
+
+    expect(fn () => SchoolYear::getNextSchoolYearOrFail())
+        ->toThrow(ModelNotFoundException::class, 'Tahun Ajaran Selanjutnya Tidak Ditemukan');
+});
