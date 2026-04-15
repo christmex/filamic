@@ -6,6 +6,7 @@ namespace App\Filament\Admin\Resources\SchoolYears\Tables;
 
 use App\Actions\ActivateNextSchoolYear;
 use App\Models\SchoolYear;
+use App\Models\StudentEnrollment;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
@@ -34,6 +35,19 @@ class SchoolYearsTable
                     ->color('success')
                     ->visible(fn (SchoolYear $record) => $record->isActive())
                     ->requiresConfirmation()
+                    ->modalDescription(function (): string {
+                        $nextSchoolYear = SchoolYear::getNextSchoolYear();
+
+                        if (blank($nextSchoolYear)) {
+                            return 'Tahun ajaran selanjutnya tidak ditemukan.';
+                        }
+
+                        $draftCount = StudentEnrollment::draft()
+                            ->where('school_year_id', $nextSchoolYear->getKey())
+                            ->count();
+
+                        return "Tahun ajaran {$nextSchoolYear->name} akan diaktifkan. Sebanyak {$draftCount} siswa akan diproses.";
+                    })
                     ->action(function () {
                         try {
                             $processed = ActivateNextSchoolYear::run();
