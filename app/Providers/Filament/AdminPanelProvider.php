@@ -64,6 +64,7 @@ final class AdminPanelProvider extends PanelProvider
                 'success' => Color::Emerald,
                 'warning' => '#ffb703',
             ])
+            ->databaseNotifications()
             ->topbar(false);
     }
 }

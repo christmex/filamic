@@ -58,6 +58,8 @@ class SchoolYear extends AcademicPeriod
             'end_year' => 'integer',
             'start_date' => 'date',
             'end_date' => 'date',
+            'activated_at' => 'datetime',
+            'activation_summary' => 'array',
         ];
     }
 
