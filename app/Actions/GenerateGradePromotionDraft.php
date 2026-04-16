@@ -24,7 +24,7 @@ class GenerateGradePromotionDraft
         $students = Student::query()
             ->active()
             ->notInFinalYears()
-            ->doesntHaveDraftEnrollmentForNextSchoolYear()
+            ->doesntHaveEnrollmentForNextSchoolYear()
             ->with(['classroom'])
             ->get();
 

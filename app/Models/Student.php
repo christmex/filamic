@@ -8,7 +8,6 @@ use App\Enums\GenderEnum;
 use App\Enums\GradeEnum;
 use App\Enums\ReligionEnum;
 use App\Enums\StatusInFamilyEnum;
-use App\Enums\StudentEnrollmentStatusEnum;
 use App\Models\Traits\BelongsToBranch;
 use App\Models\Traits\BelongsToClassroom;
 use App\Models\Traits\BelongsToSchool;
@@ -81,7 +80,7 @@ use Illuminate\Support\Number;
  * @property-read User|null $user
  *
  * @method static Builder<static>|Student active()
- * @method static Builder<static>|Student doesntHaveDraftEnrollmentForNextSchoolYear()
+ * @method static Builder<static>|Student doesntHaveEnrollmentForNextSchoolYear()
  * @method static \Database\Factories\StudentFactory factory($count = null, $state = [])
  * @method static Builder<static>|Student inFinalYears(array $exclude = [])
  * @method static Builder<static>|Student inactive()
@@ -247,11 +246,10 @@ class Student extends Model
     }
 
     #[Scope]
-    protected function doesntHaveDraftEnrollmentForNextSchoolYear(Builder $query): Builder
+    protected function doesntHaveEnrollmentForNextSchoolYear(Builder $query): Builder
     {
         return $query->whereDoesntHave('enrollments', function (Builder $query) {
-            $query->where('status', StudentEnrollmentStatusEnum::DRAFT)
-                ->where('school_year_id', SchoolYear::getNextSchoolYear()?->getKey());
+            $query->where('school_year_id', SchoolYear::getNextSchoolYear()?->getKey());
         });
     }
 
