@@ -18,6 +18,7 @@
         "lorisleiva/laravel-actions": "^2.9",
         "malzariey/filament-daterangepicker-filter": "^4.0",
         "secondnetwork/blade-tabler-icons": "^3.35",
+        "sentry/sentry-laravel": "*",
         "spatie/laravel-query-builder": "^6.4",
         "spatie/laravel-ray": "^1.41"
     },
